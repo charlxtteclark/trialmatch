@@ -1,0 +1,350 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TrialMatch</title>
+<meta name="description" content="Find recruiting clinical trials in plain English, ranked by an AI model that runs in your browser.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,650&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f6f4ef; --card:#ffffff; --ink:#1d2433; --muted:#5d6577; --line:#e3dfd6;
+  --accent:#2f6f62; --accent-soft:#e3f0ec; --warn:#a1580f; --warn-soft:#fbefe1;
+  --bad:#a33a3a; --bad-soft:#f8e6e6; --chip:#efece5; --focus:#2f6f62;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#14171d; --card:#1c2029; --ink:#e9e7e2; --muted:#a3a9b6; --line:#2d3340;
+    --accent:#6cc2ae; --accent-soft:#1d3530; --warn:#e3a35c; --warn-soft:#3a2b1b;
+    --bad:#e38a8a; --bad-soft:#3a2222; --chip:#262b36; --focus:#6cc2ae;
+  }
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 Inter,system-ui,sans-serif}
+.wrap{max-width:880px;margin:0 auto;padding:32px 16px 64px}
+header h1{font-family:Fraunces,Georgia,serif;font-weight:650;font-size:clamp(30px,6vw,44px);margin:0 0 6px;letter-spacing:-.01em}
+header p{margin:0;color:var(--muted);max-width:620px}
+.badge{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:600;padding:4px 10px;border-radius:999px;background:var(--accent-soft);color:var(--accent);margin-bottom:14px}
+form{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:20px;margin:24px 0;display:grid;gap:14px;grid-template-columns:repeat(2,1fr)}
+.full{grid-column:1/-1}
+label{display:block;font-size:13px;font-weight:600;margin-bottom:5px}
+label small{font-weight:400;color:var(--muted)}
+input,select,textarea{width:100%;font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:10px 12px}
+textarea{min-height:84px;resize:vertical}
+input:focus,select:focus,textarea:focus,button:focus-visible{outline:2px solid var(--focus);outline-offset:1px}
+button{font:inherit;font-weight:600;border:0;border-radius:10px;padding:12px 18px;background:var(--accent);color:#fff;cursor:pointer}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) button{color:#0f1a17}}
+button:disabled{opacity:.6;cursor:wait}
+.examples{display:flex;flex-wrap:wrap;gap:8px;align-items:center;font-size:13px;color:var(--muted)}
+.examples button{background:var(--chip);color:var(--ink);padding:6px 10px;font-weight:500;font-size:13px}
+#status{color:var(--muted);font-size:14px;min-height:22px;margin:4px 0 14px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:18px;margin-bottom:14px}
+.top{display:flex;gap:12px;justify-content:space-between;align-items:flex-start}
+.card h3{margin:0 0 6px;font-size:17px;line-height:1.35}
+.card h3 a{color:inherit;text-decoration:none}
+.card h3 a:hover{text-decoration:underline}
+.score{flex:none;text-align:center;font-size:12px;font-weight:600;padding:6px 10px;border-radius:10px;white-space:nowrap}
+.s-strong{background:var(--accent-soft);color:var(--accent)}
+.s-good{background:var(--chip);color:var(--ink)}
+.s-maybe{background:var(--warn-soft);color:var(--warn)}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0}
+.chip{font-size:12px;background:var(--chip);border-radius:999px;padding:3px 9px}
+.chip.ok{background:var(--accent-soft);color:var(--accent)}
+.chip.no{background:var(--bad-soft);color:var(--bad)}
+.summary{color:var(--muted);font-size:14px;margin:6px 0}
+.sites{font-size:13px;margin:6px 0}
+details{margin-top:10px;border-top:1px solid var(--line);padding-top:10px}
+summary{cursor:pointer;font-weight:600;font-size:14px;color:var(--accent)}
+.crit h4{font-size:13px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);margin:14px 0 6px}
+.crit ul{margin:0;padding-left:18px;font-size:14px}
+.crit li{margin:3px 0}
+.crit li.hot{background:var(--accent-soft);border-radius:6px;padding:2px 6px;margin-left:-6px;list-style-position:inside}
+.crit li.hot::after{content:" ← most relevant to you";font-size:11px;font-weight:600;color:var(--accent)}
+.gloss{background:var(--bg);border-radius:10px;padding:10px 12px;font-size:13px;margin-top:12px}
+.gloss b{color:var(--ink)}
+.contact{font-size:14px;margin-top:10px}
+.foot{font-size:12px;color:var(--muted);margin-top:28px;border-top:1px solid var(--line);padding-top:14px}
+.foot a{color:var(--accent)}
+.empty{text-align:center;color:var(--muted);padding:30px 10px}
+@media (max-width:600px){form{grid-template-columns:1fr}.top{flex-direction:column}.score{align-self:flex-start}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <span class="badge">● AI runs in your browser · free public data</span>
+    <h1>TrialMatch</h1>
+    <p>Describe a diagnosis in your own words. TrialMatch pulls trials that are recruiting now from ClinicalTrials.gov, ranks them with an AI language model, and translates the eligibility fine print into plain English.</p>
+  </header>
+
+  <form id="f">
+    <div class="full">
+      <label for="cond">Condition <small>(e.g. colon cancer, ALS, type 1 diabetes)</small></label>
+      <input id="cond" required placeholder="breast cancer">
+    </div>
+    <div>
+      <label for="loc">Location <small>(city or state)</small></label>
+      <input id="loc" placeholder="Los Angeles, California">
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+      <div><label for="age">Age</label><input id="age" type="number" min="0" max="120" placeholder="54"></div>
+      <div><label for="sex">Sex</label>
+        <select id="sex"><option value="">Any</option><option value="FEMALE">Female</option><option value="MALE">Male</option></select></div>
+    </div>
+    <div class="full">
+      <label for="story">Tell us more <small>(stage, past treatments, what you're hoping for). The AI uses this to rank trials.</small></label>
+      <textarea id="story" placeholder="Stage 3 HER2-positive, finished chemo last year, interested in immunotherapy or targeted therapy options."></textarea>
+    </div>
+    <div class="full examples">
+      Try:
+      <button type="button" data-ex="0">Mom, metastatic breast cancer</button>
+      <button type="button" data-ex="1">Teen with type 1 diabetes</button>
+      <button type="button" data-ex="2">Dad with early ALS</button>
+    </div>
+    <div class="full"><button id="go" type="submit">Find matching trials</button></div>
+  </form>
+
+  <div id="status" aria-live="polite"></div>
+  <div id="results"></div>
+
+  <div class="foot">
+    Data: <a href="https://clinicaltrials.gov/data-api/api" target="_blank" rel="noopener">ClinicalTrials.gov API v2</a> (U.S. National Library of Medicine). Ranking model: all-MiniLM-L6-v2 sentence embeddings via Transformers.js, running entirely on your device. Nothing you type is sent anywhere except the search terms to ClinicalTrials.gov.<br>
+    <b>Not medical advice.</b> Always review trials with your care team. Eligibility is decided by the study team.
+  </div>
+</div>
+
+<script type="module">
+const $ = s => document.querySelector(s);
+const statusEl = $('#status'), resultsEl = $('#results'), goBtn = $('#go');
+const setStatus = t => statusEl.textContent = t;
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+const EXAMPLES = [
+  {cond:'breast cancer', loc:'Los Angeles, California', age:58, sex:'FEMALE', story:'Metastatic HER2-negative breast cancer that spread to bone. Already had hormone therapy and one round of chemo. Looking for new targeted therapy options.'},
+  {cond:'type 1 diabetes', loc:'California', age:15, sex:'', story:'Teenager diagnosed two years ago, uses an insulin pump. Interested in closed-loop or artificial pancreas technology and anything that preserves beta cells.'},
+  {cond:'ALS', loc:'Washington', age:63, sex:'MALE', story:'Recently diagnosed amyotrophic lateral sclerosis, symptoms started in the hands about a year ago, still walking independently. Interested in drug trials.'}
+];
+document.querySelectorAll('[data-ex]').forEach(b => b.onclick = () => {
+  const e = EXAMPLES[+b.dataset.ex];
+  $('#cond').value = e.cond; $('#loc').value = e.loc; $('#age').value = e.age; $('#sex').value = e.sex; $('#story').value = e.story;
+});
+
+// ---------- AI model (loads lazily, cached by the browser after first use) ----------
+let extractorPromise = null;
+function getExtractor(){
+  if (!extractorPromise){
+    extractorPromise = (async () => {
+      const { pipeline, env } = await import('https://cdn.jsdelivr.net/npm/@huggingface/transformers@3.0.2');
+      env.allowLocalModels = false;
+      return pipeline('feature-extraction', 'Xenova/all-MiniLM-L6-v2', { dtype: 'q8' });
+    })().catch(err => { console.warn('Model failed to load', err); extractorPromise = null; return null; });
+  }
+  return extractorPromise;
+}
+async function embed(texts){
+  const ex = await getExtractor();
+  if (!ex) return null;
+  const out = await ex(texts, { pooling: 'mean', normalize: true });
+  return out.tolist();
+}
+const dot = (a,b) => a.reduce((s,v,i) => s + v*b[i], 0);
+
+// Fallback if the model can't load: simple keyword overlap
+const STOP = new Set('a an and are as at be but by for from has have i in is it my of on or that the their this to was were with who will patients patient study trial'.split(' '));
+const words = t => (t.toLowerCase().match(/[a-z0-9\-]{3,}/g) || []).filter(w => !STOP.has(w));
+function keywordScore(q, doc){
+  const qs = new Set(words(q)); if (!qs.size) return 0;
+  const ds = new Set(words(doc)); let hit = 0; qs.forEach(w => ds.has(w) && hit++);
+  return hit / qs.size;
+}
+
+// ---------- ClinicalTrials.gov ----------
+const FIELDS = [
+  'protocolSection.identificationModule','protocolSection.statusModule','protocolSection.descriptionModule',
+  'protocolSection.conditionsModule','protocolSection.designModule','protocolSection.eligibilityModule',
+  'protocolSection.contactsLocationsModule','protocolSection.armsInterventionsModule'
+].join(',');
+
+async function searchTrials(cond, loc){
+  const p = new URLSearchParams({
+    'query.cond': cond, 'filter.overallStatus': 'RECRUITING', pageSize: '30', countTotal: 'true', format: 'json'
+  });
+  if (loc) p.set('query.locn', loc);
+  const base = 'https://clinicaltrials.gov/api/v2/studies?';
+  let r = await fetch(base + p + '&fields=' + encodeURIComponent(FIELDS));
+  if (r.status === 400) r = await fetch(base + p); // fall back to full records if field list is rejected
+  if (!r.ok) throw new Error('ClinicalTrials.gov returned ' + r.status);
+  return r.json();
+}
+
+const parseAge = s => { if (!s) return null; const m = /([\d.]+)\s*(year|month|week|day)/i.exec(s); if (!m) return null;
+  const n = +m[1], u = m[2].toLowerCase(); return u==='year'?n : u==='month'?n/12 : u==='week'?n/52 : n/365; };
+
+function normalize(study){
+  const ps = study.protocolSection || {};
+  const id = ps.identificationModule || {}, el = ps.eligibilityModule || {}, cl = ps.contactsLocationsModule || {};
+  return {
+    id: id.nctId, title: id.briefTitle || id.officialTitle || 'Untitled study',
+    summary: ps.descriptionModule?.briefSummary || '',
+    conditions: ps.conditionsModule?.conditions || [], keywords: ps.conditionsModule?.keywords || [],
+    phases: (ps.designModule?.phases || []).filter(p => p !== 'NA').map(p => p.replace('PHASE','Phase ')),
+    interventions: (ps.armsInterventionsModule?.interventions || []).map(i => i.name).filter(Boolean),
+    criteria: el.eligibilityCriteria || '', sex: el.sex || 'ALL',
+    minAge: parseAge(el.minimumAge), maxAge: parseAge(el.maximumAge), minAgeTxt: el.minimumAge, maxAgeTxt: el.maximumAge,
+    healthy: el.healthyVolunteers,
+    locations: cl.locations || [], contacts: cl.centralContacts || []
+  };
+}
+
+function checks(t, age, sex){
+  const out = [];
+  if (age !== null){
+    const okMin = t.minAge === null || age >= t.minAge, okMax = t.maxAge === null || age <= t.maxAge;
+    const range = `${t.minAgeTxt || 'any'} – ${t.maxAgeTxt || 'no max'}`;
+    out.push({ ok: okMin && okMax, label: (okMin && okMax ? 'Age fits ' : 'Age outside ') + range });
+  }
+  if (sex && t.sex !== 'ALL') out.push({ ok: t.sex === sex, label: t.sex === sex ? 'Sex fits' : `Only ${t.sex.toLowerCase()} participants` });
+  return out;
+}
+
+function nearbySites(t, loc){
+  const toks = words(loc || '');
+  let sites = t.locations;
+  if (toks.length) sites = sites.filter(s => toks.some(w => `${s.city} ${s.state} ${s.country}`.toLowerCase().includes(w)));
+  return sites.slice(0, 3);
+}
+
+// ---------- Plain-English glossary ----------
+const GLOSSARY = [
+  [/\bECOG\b/i,'ECOG score','How well you manage daily activities. 0 is fully active, 4 is fully bedbound. Many trials need 0–1 or 0–2.'],
+  [/karnofsky/i,'Karnofsky score','A 0–100 measure of daily functioning. Higher means more independent.'],
+  [/metasta/i,'Metastatic','The disease has spread from where it started to other parts of the body.'],
+  [/histolog|cytolog/i,'Histologically / cytologically confirmed','The diagnosis was confirmed by looking at tissue or cells under a microscope (a biopsy).'],
+  [/measurable disease|RECIST/i,'Measurable disease (RECIST)','Tumors are large enough on scans for the study to track whether they shrink.'],
+  [/organ (and marrow )?function|marrow function/i,'Adequate organ function','Blood tests show your liver, kidneys and bone marrow are working well enough for the treatment.'],
+  [/\bANC\b|neutrophil/i,'ANC / neutrophils','A white blood cell count that shows how well you can fight infection.'],
+  [/creatinine/i,'Creatinine / creatinine clearance','Blood tests for kidney function.'],
+  [/bilirubin|\bAST\b|\bALT\b/i,'Bilirubin, AST, ALT','Blood tests for liver function.'],
+  [/\bCNS\b|brain metasta/i,'CNS / brain metastases','Spread to the brain or spinal cord. Often excluded, or allowed only if stable.'],
+  [/informed consent/i,'Informed consent','You (or a legal guardian) agree in writing after the risks are explained.'],
+  [/naive|naïve/i,'Treatment-naïve','You have not yet had a certain type of treatment.'],
+  [/refractory/i,'Refractory','The disease did not respond to a previous treatment.'],
+  [/relapsed|recurren/i,'Relapsed / recurrent','The disease came back after treatment.'],
+  [/washout/i,'Washout period','A required gap since your last treatment before you can start the study drug.'],
+  [/contracept/i,'Contraception requirement','Participants who could become pregnant must use birth control during the study.'],
+  [/HER2/i,'HER2','A protein on some cancer cells. HER2-positive cancers can respond to HER2-targeted drugs.'],
+  [/ALSFRS/i,'ALSFRS-R','A questionnaire scoring ALS symptoms from 0 to 48. Higher means more function.'],
+  [/HbA1c|A1c/i,'HbA1c','Average blood sugar over the past 2–3 months.'],
+  [/placebo/i,'Placebo','An inactive look-alike treatment used for comparison. You may not know which one you get.'],
+  [/randomi/i,'Randomized','A computer assigns you to a study group by chance.']
+];
+
+function splitCriteria(text){
+  const inc = [], exc = []; let cur = inc;
+  text.split(/\r?\n/).forEach(raw => {
+    const line = raw.trim(); if (!line) return;
+    if (/^exclusion/i.test(line)) { cur = exc; return; }
+    if (/^inclusion/i.test(line)) { cur = inc; return; }
+    const clean = line.replace(/^([*\-•]|\d+[.)])\s*/, '');
+    if (clean.length > 3) cur.push(clean);
+  });
+  return { inc, exc };
+}
+
+// ---------- Rendering ----------
+let profileVec = null, profileText = '';
+function band(s, usingAI){
+  const strong = usingAI ? 0.55 : 0.6, good = usingAI ? 0.4 : 0.3;
+  return s >= strong ? ['s-strong','Strong match'] : s >= good ? ['s-good','Good match'] : ['s-maybe','Possible match'];
+}
+
+function render(list, usingAI, loc, total){
+  if (!list.length){ resultsEl.innerHTML = '<div class="empty">No recruiting trials found. Try a broader condition name or a state instead of a city.</div>'; return; }
+  resultsEl.innerHTML = list.map(({t, s, chk}) => {
+    const [cls, lbl] = band(s, usingAI);
+    const sites = nearbySites(t, loc);
+    const contact = t.contacts[0];
+    return `<article class="card" data-id="${esc(t.id)}">
+      <div class="top">
+        <div>
+          <h3><a href="https://clinicaltrials.gov/study/${esc(t.id)}" target="_blank" rel="noopener">${esc(t.title)}</a></h3>
+          <div class="chips">
+            <span class="chip">${esc(t.id)}</span>
+            ${t.phases.map(p => `<span class="chip">${esc(p)}</span>`).join('')}
+            ${chk.map(c => `<span class="chip ${c.ok?'ok':'no'}">${c.ok?'✓':'✕'} ${esc(c.label)}</span>`).join('')}
+          </div>
+        </div>
+        <div class="score ${cls}">${lbl}<br><span style="font-weight:500">${Math.round(s*100)}% similar</span></div>
+      </div>
+      <p class="summary">${esc(t.summary.slice(0, 280))}${t.summary.length > 280 ? '…' : ''}</p>
+      ${t.interventions.length ? `<div class="sites"><b>Testing:</b> ${esc(t.interventions.slice(0,4).join(', '))}</div>` : ''}
+      ${sites.length ? `<div class="sites"><b>Sites near you:</b> ${sites.map(x => esc([x.facility, x.city, x.state].filter(Boolean).join(', '))).join(' · ')}</div>` : ''}
+      <details><summary>Explain eligibility in plain English</summary><div class="crit">Loading…</div></details>
+      ${contact ? `<div class="contact"><b>Contact:</b> ${esc(contact.name || 'Study team')}${contact.phone ? ` · <a href="tel:${esc(contact.phone)}">${esc(contact.phone)}</a>` : ''}${contact.email ? ` · <a href="mailto:${esc(contact.email)}">${esc(contact.email)}</a>` : ''}</div>` : ''}
+    </article>`;
+  }).join('');
+
+  resultsEl.querySelectorAll('details').forEach(d => d.addEventListener('toggle', async () => {
+    if (!d.open || d.dataset.done) return; d.dataset.done = 1;
+    const t = list.find(x => x.t.id === d.closest('.card').dataset.id).t;
+    await explain(t, d.querySelector('.crit'));
+  }));
+}
+
+async function explain(t, box){
+  const { inc, exc } = splitCriteria(t.criteria);
+  if (!inc.length && !exc.length){ box.textContent = 'No eligibility details listed. Check the study page.'; return; }
+  // AI step: find the criteria lines most relevant to this person's description
+  let hot = new Set();
+  const all = [...inc, ...exc];
+  if (profileVec && profileText.trim()){
+    const vecs = await embed(all.map(x => x.slice(0, 400)));
+    if (vecs) vecs.map((v,i) => [dot(v, profileVec), i]).sort((a,b) => b[0]-a[0]).slice(0, 3).forEach(([,i]) => hot.add(all[i]));
+  }
+  const li = x => `<li class="${hot.has(x)?'hot':''}">${esc(x)}</li>`;
+  const found = GLOSSARY.filter(([re]) => re.test(t.criteria));
+  box.innerHTML = `
+    ${inc.length ? `<h4>You may qualify if…</h4><ul>${inc.map(li).join('')}</ul>` : ''}
+    ${exc.length ? `<h4>You may NOT qualify if…</h4><ul>${exc.map(li).join('')}</ul>` : ''}
+    ${found.length ? `<div class="gloss"><b>Jargon decoder</b><br>${found.map(([,term,def]) => `<b>${esc(term)}:</b> ${esc(def)}`).join('<br>')}</div>` : ''}`;
+}
+
+// ---------- Main flow ----------
+$('#f').addEventListener('submit', async e => {
+  e.preventDefault();
+  const cond = $('#cond').value.trim(), loc = $('#loc').value.trim(), story = $('#story').value.trim();
+  const age = $('#age').value === '' ? null : +$('#age').value, sex = $('#sex').value;
+  goBtn.disabled = true; resultsEl.innerHTML = '';
+  try {
+    setStatus('Loading the AI model (about 25 MB on first visit, cached after that) and searching ClinicalTrials.gov…');
+    const modelP = getExtractor();
+    const data = await searchTrials(cond, loc);
+    const trials = (data.studies || []).map(normalize).filter(t => t.id);
+    if (!trials.length){ render([], false, loc, 0); setStatus(''); return; }
+
+    profileText = [cond, story].filter(Boolean).join('. ');
+    setStatus(`Found ${data.totalCount ?? trials.length} recruiting trials. Ranking the top ${trials.length} with AI…`);
+    await modelP;
+    const docs = trials.map(t => [t.title, t.conditions.join(', '), t.keywords.join(', '), t.interventions.join(', '), t.summary.slice(0, 700)].join('. '));
+    const vecs = await embed([profileText, ...docs]);
+    const usingAI = !!vecs;
+    profileVec = usingAI ? vecs[0] : null;
+
+    const scored = trials.map((t, i) => {
+      const chk = checks(t, age, sex);
+      let s = usingAI ? dot(vecs[i+1], profileVec) : keywordScore(profileText, docs[i]);
+      if (chk.some(c => !c.ok)) s *= 0.6; // push likely-ineligible trials down
+      return { t, s, chk };
+    }).sort((a,b) => b.s - a.s);
+
+    render(scored, usingAI, loc, data.totalCount);
+    setStatus(`${data.totalCount ?? trials.length} recruiting trials found · top ${scored.length} ranked ${usingAI ? 'by AI similarity to your description' : 'by keyword overlap (the AI model could not load)'}.`);
+  } catch (err){
+    console.error(err);
+    setStatus('Something went wrong: ' + err.message + '. Check your connection and try again.');
+  } finally { goBtn.disabled = false; }
+});
+</script>
+</body>
+</html>
