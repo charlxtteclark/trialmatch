@@ -20,6 +20,14 @@ The model runs entirely in the browser (Transformers.js), so there are no API co
 
 ---
 
+## Evaluation (`eval.html`)
+Open `/eval.html` on the live site.
+1. **Test set:** 6 gold patient cases (metastatic breast, NSCLC with brain mets, stage III colon, recurrent prostate, new-onset T1D in a teen, early ALS). For each case it pulls and **freezes** the same 50 recruiting trials the app sees, so results are reproducible.
+2. **Label:** the top 5 from each system are pooled and labeled **blind** (no system or score shown): 2 = good match, 1 = right disease but likely excluded, 0 = not relevant.
+3. **Results:** compares **No AI** (ClinicalTrials.gov order) vs **v1** (similarity on condition + story) vs **v2** (full profile + eligibility rules) on Good@5 (main metric), nDCG@5, Excluded@5, Irrelevant@5 and MRR, and checks the rules' conflict flags against the human labels (precision/recall). Weight sliders let you iterate; newly surfaced trials are added to the labeling queue.
+
+Export the labeled gold set as JSON and commit it as `gold.json` so anyone opening the page sees the same results.
+
 ## Homework: next steps with the AI solution
 
 ### 1. Data that would be useful
