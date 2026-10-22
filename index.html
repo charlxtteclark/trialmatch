@@ -29,15 +29,25 @@ header p{margin:0;color:var(--muted);max-width:620px}
 form{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:20px;margin:24px 0;display:grid;gap:14px;grid-template-columns:repeat(2,1fr)}
 .full{grid-column:1/-1}
 label{display:block;font-size:13px;font-weight:600;margin-bottom:5px}
-label small{font-weight:400;color:var(--muted)}
+label small,.hint{font-weight:400;color:var(--muted)}
+.hint{font-size:12px;margin:4px 0 0}
 input,select,textarea{width:100%;font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:10px 12px}
 textarea{min-height:84px;resize:vertical}
-input:focus,select:focus,textarea:focus,button:focus-visible{outline:2px solid var(--focus);outline-offset:1px}
+input:focus,select:focus,textarea:focus,button:focus-visible,summary:focus-visible{outline:2px solid var(--focus);outline-offset:1px}
 button{font:inherit;font-weight:600;border:0;border-radius:10px;padding:12px 18px;background:var(--accent);color:#fff;cursor:pointer}
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]) button{color:#0f1a17}}
 button:disabled{opacity:.6;cursor:wait}
 .examples{display:flex;flex-wrap:wrap;gap:8px;align-items:center;font-size:13px;color:var(--muted)}
 .examples button{background:var(--chip);color:var(--ink);padding:6px 10px;font-weight:500;font-size:13px}
+details.more{border:1px solid var(--line);border-radius:12px;padding:0 14px}
+details.more>summary{padding:12px 0;font-size:14px}
+.more-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;padding-bottom:16px}
+.group-title{grid-column:1/-1;font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin:6px 0 -6px;border-top:1px solid var(--line);padding-top:14px}
+.group-title:first-child{border-top:0;padding-top:0}
+.checks{display:flex;flex-wrap:wrap;gap:6px}
+.checks label{display:inline-flex;align-items:center;gap:6px;font-weight:500;font-size:13px;background:var(--bg);border:1px solid var(--line);border-radius:999px;padding:5px 11px;margin:0;cursor:pointer}
+.checks input{width:auto;margin:0;accent-color:var(--accent)}
+.checks label:has(input:checked){background:var(--accent-soft);border-color:var(--accent);color:var(--accent)}
 #status{color:var(--muted);font-size:14px;min-height:22px;margin:4px 0 14px}
 .card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:18px;margin-bottom:14px}
 .top{display:flex;gap:12px;justify-content:space-between;align-items:flex-start}
@@ -45,6 +55,7 @@ button:disabled{opacity:.6;cursor:wait}
 .card h3 a{color:inherit;text-decoration:none}
 .card h3 a:hover{text-decoration:underline}
 .score{flex:none;text-align:center;font-size:12px;font-weight:600;padding:6px 10px;border-radius:10px;white-space:nowrap}
+.score b{display:block;font-size:20px;line-height:1.1}
 .s-strong{background:var(--accent-soft);color:var(--accent)}
 .s-good{background:var(--chip);color:var(--ink)}
 .s-maybe{background:var(--warn-soft);color:var(--warn)}
@@ -52,10 +63,17 @@ button:disabled{opacity:.6;cursor:wait}
 .chip{font-size:12px;background:var(--chip);border-radius:999px;padding:3px 9px}
 .chip.ok{background:var(--accent-soft);color:var(--accent)}
 .chip.no{background:var(--bad-soft);color:var(--bad)}
+.chip.check{background:var(--warn-soft);color:var(--warn)}
 .summary{color:var(--muted);font-size:14px;margin:6px 0}
 .sites{font-size:13px;margin:6px 0}
-details{margin-top:10px;border-top:1px solid var(--line);padding-top:10px}
+.card details{margin-top:10px;border-top:1px solid var(--line);padding-top:10px}
 summary{cursor:pointer;font-weight:600;font-size:14px;color:var(--accent)}
+.why{list-style:none;padding:0;margin:10px 0 0;font-size:14px}
+.why li{display:grid;grid-template-columns:22px 1fr;gap:4px;margin:6px 0}
+.why .ic{font-weight:700}
+.why .ic.ok{color:var(--accent)} .why .ic.no{color:var(--bad)} .why .ic.check{color:var(--warn)} .why .ic.ai{color:var(--muted)}
+.why q{display:block;color:var(--muted);font-size:13px;font-style:italic;quotes:"“" "”"}
+.math{background:var(--bg);border-radius:10px;padding:10px 12px;font-size:13px;margin-top:10px;font-variant-numeric:tabular-nums}
 .crit h4{font-size:13px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);margin:14px 0 6px}
 .crit ul{margin:0;padding-left:18px;font-size:14px}
 .crit li{margin:3px 0}
@@ -64,10 +82,16 @@ summary{cursor:pointer;font-weight:600;font-size:14px;color:var(--accent)}
 .gloss{background:var(--bg);border-radius:10px;padding:10px 12px;font-size:13px;margin-top:12px}
 .gloss b{color:var(--ink)}
 .contact{font-size:14px;margin-top:10px}
+.how{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:6px 18px;margin-top:28px}
+.how>summary{padding:12px 0;font-size:15px}
+.how ol{padding-left:20px;font-size:14px;margin:0 0 14px}
+.how li{margin:8px 0}
+.how table{width:100%;border-collapse:collapse;font-size:13px;margin:6px 0 16px}
+.how th,.how td{text-align:left;border-bottom:1px solid var(--line);padding:6px 6px 6px 0;vertical-align:top}
 .foot{font-size:12px;color:var(--muted);margin-top:28px;border-top:1px solid var(--line);padding-top:14px}
 .foot a{color:var(--accent)}
 .empty{text-align:center;color:var(--muted);padding:30px 10px}
-@media (max-width:600px){form{grid-template-columns:1fr}.top{flex-direction:column}.score{align-self:flex-start}}
+@media (max-width:600px){form,.more-grid{grid-template-columns:1fr}.top{flex-direction:column}.score{align-self:flex-start}}
 </style>
 </head>
 <body>
@@ -75,7 +99,7 @@ summary{cursor:pointer;font-weight:600;font-size:14px;color:var(--accent)}
   <header>
     <span class="badge">● AI runs in your browser · free public data</span>
     <h1>TrialMatch</h1>
-    <p>Describe a diagnosis in your own words. TrialMatch pulls trials that are recruiting now from ClinicalTrials.gov, ranks them with an AI language model, and translates the eligibility fine print into plain English.</p>
+    <p>Describe a diagnosis in your own words. TrialMatch pulls trials that are recruiting now from ClinicalTrials.gov, ranks them with an AI language model, checks them against your details, and translates the eligibility fine print into plain English.</p>
   </header>
 
   <form id="f">
@@ -93,14 +117,105 @@ summary{cursor:pointer;font-weight:600;font-size:14px;color:var(--accent)}
         <select id="sex"><option value="">Any</option><option value="FEMALE">Female</option><option value="MALE">Male</option></select></div>
     </div>
     <div class="full">
-      <label for="story">Tell us more <small>(stage, past treatments, what you're hoping for). The AI uses this to rank trials.</small></label>
-      <textarea id="story" placeholder="Stage 3 HER2-positive, finished chemo last year, interested in immunotherapy or targeted therapy options."></textarea>
+      <label for="story">Tell us more <small>(anything else: symptoms, goals, what you're hoping for). The AI uses this to rank trials.</small></label>
+      <textarea id="story" placeholder="Interested in immunotherapy or targeted therapy options. Prefer something close to home."></textarea>
     </div>
+
+    <details class="more full" id="more" open>
+      <summary>More details: improves matching (all optional)</summary>
+      <div class="more-grid">
+        <div class="group-title">Diagnosis</div>
+        <div>
+          <label for="stage">Stage <small>(if relevant)</small></label>
+          <select id="stage">
+            <option value="">Not sure / not applicable</option>
+            <option value="0">Stage 0 (in situ)</option>
+            <option value="1">Stage I</option>
+            <option value="2">Stage II</option>
+            <option value="3">Stage III</option>
+            <option value="4">Stage IV / metastatic (spread to distant organs)</option>
+          </select>
+        </div>
+        <div>
+          <label for="diag">When diagnosed <small>(month &amp; year)</small></label>
+          <input id="diag" type="month">
+        </div>
+        <div class="full">
+          <label for="bio">Biomarkers or genetic test results <small>(comma-separated)</small></label>
+          <input id="bio" placeholder="HER2-negative, ER+, BRCA1 mutation, EGFR, PD-L1 high">
+          <p class="hint">Use + / positive / mutation, or − / negative. These are matched against what each trial requires.</p>
+        </div>
+
+        <div class="group-title">Treatment so far</div>
+        <div class="full">
+          <label for="txstatus">Where things stand</label>
+          <select id="txstatus">
+            <option value="">Not sure</option>
+            <option value="new">Newly diagnosed, no treatment yet</option>
+            <option value="current">Currently in treatment</option>
+            <option value="remission">Finished treatment, no sign of disease</option>
+            <option value="relapsed">Came back after treatment (relapsed / recurrent)</option>
+            <option value="refractory">Treatment stopped working (progressing / refractory)</option>
+          </select>
+        </div>
+        <div class="full">
+          <label>Treatments already received</label>
+          <div class="checks" id="tx">
+            <label><input type="checkbox" value="surgery">Surgery</label>
+            <label><input type="checkbox" value="chemo">Chemotherapy</label>
+            <label><input type="checkbox" value="radiation">Radiation</label>
+            <label><input type="checkbox" value="immuno">Immunotherapy</label>
+            <label><input type="checkbox" value="targeted">Targeted therapy</label>
+            <label><input type="checkbox" value="hormone">Hormone therapy</label>
+            <label><input type="checkbox" value="transplant">Stem cell / bone marrow transplant</label>
+            <label><input type="checkbox" value="cart">CAR-T</label>
+          </div>
+        </div>
+
+        <div class="group-title">Health &amp; daily life</div>
+        <div class="full">
+          <label for="ecog">Daily activity level</label>
+          <select id="ecog">
+            <option value="">Not sure</option>
+            <option value="0">Fully active, no restrictions</option>
+            <option value="1">Some limits on strenuous activity, can do light work</option>
+            <option value="2">Up and about more than half the day, can't work</option>
+            <option value="3">In bed or a chair more than half the day</option>
+            <option value="4">Mostly in bed, needs help with self-care</option>
+          </select>
+          <p class="hint">This maps to the ECOG performance score (0–4) that many trials require.</p>
+        </div>
+        <div class="full">
+          <label>Other health conditions</label>
+          <div class="checks" id="cx">
+            <label><input type="checkbox" value="brain">Spread to brain / spinal cord</label>
+            <label><input type="checkbox" value="heart">Heart disease</label>
+            <label><input type="checkbox" value="kidney">Kidney disease</label>
+            <label><input type="checkbox" value="liver">Liver disease</label>
+            <label><input type="checkbox" value="hiv">HIV</label>
+            <label><input type="checkbox" value="hep">Hepatitis B or C</label>
+            <label><input type="checkbox" value="autoimmune">Autoimmune disease</label>
+            <label><input type="checkbox" value="othercancer">Another cancer in the last 5 years</label>
+            <label><input type="checkbox" value="pregnant">Pregnant or breastfeeding</label>
+          </div>
+        </div>
+
+        <div class="group-title">Trial preferences</div>
+        <div class="full checks" id="prefs">
+          <label><input type="checkbox" value="noPhase1">Skip Phase 1-only (first-in-human) trials</label>
+          <label><input type="checkbox" value="noPlacebo">Skip placebo-controlled trials</label>
+          <label><input type="checkbox" value="nearOnly">Only trials with a site in my location</label>
+          <label><input type="checkbox" value="hideConflicts">Hide trials with likely conflicts</label>
+        </div>
+      </div>
+    </details>
+
     <div class="full examples">
       Try:
       <button type="button" data-ex="0">Mom, metastatic breast cancer</button>
-      <button type="button" data-ex="1">Teen with type 1 diabetes</button>
-      <button type="button" data-ex="2">Dad with early ALS</button>
+      <button type="button" data-ex="1">Dad, lung cancer + brain mets</button>
+      <button type="button" data-ex="2">Teen with type 1 diabetes</button>
+      <button type="button" data-ex="3">Dad with early ALS</button>
     </div>
     <div class="full"><button id="go" type="submit">Find matching trials</button></div>
   </form>
@@ -108,26 +223,68 @@ summary{cursor:pointer;font-weight:600;font-size:14px;color:var(--accent)}
   <div id="status" aria-live="polite"></div>
   <div id="results"></div>
 
+  <details class="how">
+    <summary>How the matching works</summary>
+    <ol>
+      <li><b>Search.</b> Pulls up to 50 trials that are recruiting now for your condition and location from ClinicalTrials.gov.</li>
+      <li><b>AI similarity.</b> An AI language model (all-MiniLM-L6-v2) turns your description and each trial's title, conditions, interventions and summary into vectors and measures how close they are in meaning (cosine similarity). This is the base score.</li>
+      <li><b>Eligibility checks.</b> Rules read each trial's inclusion and exclusion criteria and compare them to your details. Each finding is marked <b>✓ fits</b>, <b>✕ likely conflict</b> or <b>? check with the study team</b>, and shows the exact criterion it came from.</li>
+      <li><b>Final fit score</b> = AI similarity × 0.55 for each conflict × 0.92 for each item to check, + 4 points for each detail that fits (up to +12).</li>
+      <li><b>Preferences</b> (phase, placebo, nearby sites) hide trials rather than re-rank them.</li>
+    </ol>
+    <table>
+      <tr><th>Your detail</th><th>What it's checked against</th></tr>
+      <tr><td>Age, sex</td><td>The trial's listed age range and sex</td></tr>
+      <tr><td>Stage</td><td>Stages named in inclusion criteria ("Stage III–IV", "metastatic", "early-stage") and metastatic exclusions</td></tr>
+      <tr><td>When diagnosed</td><td>Time windows like "within 6 months of diagnosis"</td></tr>
+      <tr><td>Treatment status &amp; history</td><td>"Previously untreated", "relapsed/refractory", "at least one prior line", and exclusions for specific prior treatments (with washout periods flagged)</td></tr>
+      <tr><td>Biomarkers</td><td>Required or excluded markers, e.g. HER2-positive vs HER2-negative</td></tr>
+      <tr><td>Activity level</td><td>ECOG and Karnofsky performance score limits</td></tr>
+      <tr><td>Other conditions</td><td>Exclusions for brain metastases, heart, kidney or liver disease, HIV, hepatitis, autoimmune disease, other cancers, pregnancy</td></tr>
+    </table>
+    <p class="hint" style="margin-bottom:14px">Rules read free text, so they can miss or misread criteria. A ✕ means "probably not", not "definitely not". Always confirm with the study team.</p>
+  </details>
+
   <div class="foot">
-    Data: <a href="https://clinicaltrials.gov/data-api/api" target="_blank" rel="noopener">ClinicalTrials.gov API v2</a> (U.S. National Library of Medicine). Ranking model: all-MiniLM-L6-v2 sentence embeddings via Transformers.js, running entirely on your device. Nothing you type is sent anywhere except the search terms to ClinicalTrials.gov.<br>
+    Data: <a href="https://clinicaltrials.gov/data-api/api" target="_blank" rel="noopener">ClinicalTrials.gov API v2</a> (U.S. National Library of Medicine). Ranking model: all-MiniLM-L6-v2 sentence embeddings via Transformers.js, running entirely on your device. Nothing you type is sent anywhere except the condition and location to ClinicalTrials.gov.<br>
     <b>Not medical advice.</b> Always review trials with your care team. Eligibility is decided by the study team.
   </div>
 </div>
 
 <script type="module">
 const $ = s => document.querySelector(s);
+const $$ = s => [...document.querySelectorAll(s)];
 const statusEl = $('#status'), resultsEl = $('#results'), goBtn = $('#go');
 const setStatus = t => statusEl.textContent = t;
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const pct = x => Math.round(x * 100) + '%';
+const clip = (s, n = 160) => s.length > n ? s.slice(0, n - 1) + '…' : s;
 
+// Scoring weights (tune these, then re-run your baseline test)
+const W = { conflict: 0.55, check: 0.92, bonus: 0.04, maxBonus: 0.12 };
+
+// ---------- Examples ----------
 const EXAMPLES = [
-  {cond:'breast cancer', loc:'Los Angeles, California', age:58, sex:'FEMALE', story:'Metastatic HER2-negative breast cancer that spread to bone. Already had hormone therapy and one round of chemo. Looking for new targeted therapy options.'},
-  {cond:'type 1 diabetes', loc:'California', age:15, sex:'', story:'Teenager diagnosed two years ago, uses an insulin pump. Interested in closed-loop or artificial pancreas technology and anything that preserves beta cells.'},
-  {cond:'ALS', loc:'Washington', age:63, sex:'MALE', story:'Recently diagnosed amyotrophic lateral sclerosis, symptoms started in the hands about a year ago, still walking independently. Interested in drug trials.'}
+  {cond:'breast cancer', loc:'Los Angeles, California', age:58, sex:'FEMALE', stage:'4', diag:'2023-06', status:'refractory',
+   tx:['surgery','chemo','hormone'], bio:'HER2-negative, ER+, PR+', ecog:'1', cx:[],
+   story:'Cancer spread to bone and is progressing on hormone therapy. Looking for new targeted therapy options.'},
+  {cond:'non-small cell lung cancer', loc:'Washington', age:67, sex:'MALE', stage:'4', diag:'2025-02', status:'refractory',
+   tx:['chemo','immuno'], bio:'EGFR negative, PD-L1 high', ecog:'1', cx:['brain'],
+   story:'Progressed after chemo plus immunotherapy. Small brain metastases treated with radiation and now stable.'},
+  {cond:'type 1 diabetes', loc:'California', age:15, sex:'', stage:'', diag:'2026-08', status:'current',
+   tx:[], bio:'', ecog:'0', cx:[],
+   story:'Teenager diagnosed recently, on insulin. Interested in therapies that preserve beta cells or closed-loop pump technology.'},
+  {cond:'ALS', loc:'Washington', age:63, sex:'MALE', stage:'', diag:'2026-04', status:'new',
+   tx:[], bio:'', ecog:'1', cx:[],
+   story:'Recently diagnosed amyotrophic lateral sclerosis, symptoms started in the hands about a year ago, still walking independently. Interested in drug trials.'}
 ];
-document.querySelectorAll('[data-ex]').forEach(b => b.onclick = () => {
+const setChecks = (sel, vals) => $$(sel + ' input').forEach(i => i.checked = vals.includes(i.value));
+const getChecks = sel => $$(sel + ' input:checked').map(i => i.value);
+$$('[data-ex]').forEach(b => b.onclick = () => {
   const e = EXAMPLES[+b.dataset.ex];
-  $('#cond').value = e.cond; $('#loc').value = e.loc; $('#age').value = e.age; $('#sex').value = e.sex; $('#story').value = e.story;
+  ['cond','loc','age','sex','stage','diag','bio','ecog','story'].forEach(k => $('#' + k).value = e[k] ?? ''); $('#txstatus').value = e.status;
+  setChecks('#tx', e.tx); setChecks('#cx', e.cx);
+  $('#more').open = true;
 });
 
 // ---------- AI model (loads lazily, cached by the browser after first use) ----------
@@ -168,44 +325,48 @@ const FIELDS = [
 
 async function searchTrials(cond, loc){
   const p = new URLSearchParams({
-    'query.cond': cond, 'filter.overallStatus': 'RECRUITING', pageSize: '30', countTotal: 'true', format: 'json'
+    'query.cond': cond, 'filter.overallStatus': 'RECRUITING', pageSize: '50', countTotal: 'true', format: 'json'
   });
   if (loc) p.set('query.locn', loc);
   const base = 'https://clinicaltrials.gov/api/v2/studies?';
   let r = await fetch(base + p + '&fields=' + encodeURIComponent(FIELDS));
-  if (r.status === 400) r = await fetch(base + p); // fall back to full records if field list is rejected
+  if (r.status === 400) r = await fetch(base + p);
   if (!r.ok) throw new Error('ClinicalTrials.gov returned ' + r.status);
   return r.json();
 }
 
 const parseAge = s => { if (!s) return null; const m = /([\d.]+)\s*(year|month|week|day)/i.exec(s); if (!m) return null;
   const n = +m[1], u = m[2].toLowerCase(); return u==='year'?n : u==='month'?n/12 : u==='week'?n/52 : n/365; };
+const PHASE_LABEL = p => p === 'EARLY_PHASE1' ? 'Early Phase 1' : p.replace('PHASE', 'Phase ');
+
+function splitCriteria(text){
+  const inc = [], exc = []; let cur = inc;
+  text.split(/\r?\n/).forEach(raw => {
+    const line = raw.trim(); if (!line) return;
+    if (/^exclusion/i.test(line)) { cur = exc; return; }
+    if (/^inclusion/i.test(line)) { cur = inc; return; }
+    const clean = line.replace(/^([*\-•]|\d+[.)])\s*/, '');
+    if (clean.length > 3) cur.push(clean);
+  });
+  return { inc, exc };
+}
 
 function normalize(study){
   const ps = study.protocolSection || {};
   const id = ps.identificationModule || {}, el = ps.eligibilityModule || {}, cl = ps.contactsLocationsModule || {};
-  return {
+  const t = {
     id: id.nctId, title: id.briefTitle || id.officialTitle || 'Untitled study',
     summary: ps.descriptionModule?.briefSummary || '',
     conditions: ps.conditionsModule?.conditions || [], keywords: ps.conditionsModule?.keywords || [],
-    phases: (ps.designModule?.phases || []).filter(p => p !== 'NA').map(p => p.replace('PHASE','Phase ')),
+    phasesRaw: (ps.designModule?.phases || []).filter(p => p !== 'NA'),
     interventions: (ps.armsInterventionsModule?.interventions || []).map(i => i.name).filter(Boolean),
     criteria: el.eligibilityCriteria || '', sex: el.sex || 'ALL',
     minAge: parseAge(el.minimumAge), maxAge: parseAge(el.maximumAge), minAgeTxt: el.minimumAge, maxAgeTxt: el.maximumAge,
-    healthy: el.healthyVolunteers,
     locations: cl.locations || [], contacts: cl.centralContacts || []
   };
-}
-
-function checks(t, age, sex){
-  const out = [];
-  if (age !== null){
-    const okMin = t.minAge === null || age >= t.minAge, okMax = t.maxAge === null || age <= t.maxAge;
-    const range = `${t.minAgeTxt || 'any'} – ${t.maxAgeTxt || 'no max'}`;
-    out.push({ ok: okMin && okMax, label: (okMin && okMax ? 'Age fits ' : 'Age outside ') + range });
-  }
-  if (sex && t.sex !== 'ALL') out.push({ ok: t.sex === sex, label: t.sex === sex ? 'Sex fits' : `Only ${t.sex.toLowerCase()} participants` });
-  return out;
+  t.phases = t.phasesRaw.map(PHASE_LABEL);
+  Object.assign(t, splitCriteria(t.criteria));
+  return t;
 }
 
 function nearbySites(t, loc){
@@ -213,6 +374,229 @@ function nearbySites(t, loc){
   let sites = t.locations;
   if (toks.length) sites = sites.filter(s => toks.some(w => `${s.city} ${s.state} ${s.country}`.toLowerCase().includes(w)));
   return sites.slice(0, 3);
+}
+
+// ======================================================================
+// ELIGIBILITY RULES
+// Each rule returns signals: { kind: 'ok' | 'no' | 'check', label, quote? }
+// ======================================================================
+const firstMatch = (lines, re) => lines.find(l => re.test(l));
+const sig = (kind, label, quote) => ({ kind, label, quote });
+
+// --- Age & sex (structured fields) ---
+function ruleAgeSex(t, P){
+  const out = [];
+  if (P.age !== null){
+    const fits = (t.minAge === null || P.age >= t.minAge) && (t.maxAge === null || P.age <= t.maxAge);
+    const range = `${t.minAgeTxt || 'any'} – ${t.maxAgeTxt || 'no max'}`;
+    out.push(sig(fits ? 'ok' : 'no', (fits ? 'Age fits ' : 'Age outside ') + range));
+  }
+  if (P.sex && t.sex !== 'ALL') out.push(sig(t.sex === P.sex ? 'ok' : 'no', t.sex === P.sex ? 'Sex fits' : `Only ${t.sex.toLowerCase()} participants`));
+  return out;
+}
+
+// --- Stage ---
+const ROMAN = { '0':0, 'i':1, 'ii':2, 'iii':3, 'iv':4, '1':1, '2':2, '3':3, '4':4 };
+const TOK = '(?:0|iv|iii|ii|i|[1-4])(?:[abc](?![a-z]))?\\d?(?![a-z])(?!\\s*(?:weeks?|days?|months?|years?|mg|cm|%))';
+function parseStages(text){
+  const out = new Set();
+  const re = new RegExp(`\\bstages?\\s*((?:${TOK}(?:\\s*(?:,|or|and|-|–|to|through|/)\\s*)*)+)`, 'gi');
+  let m;
+  while ((m = re.exec(text))){
+    const toks = [...m[1].matchAll(/(0|iv|iii|ii|i|[1-4])[abc]?\d?\s*(-|–|to|through)?/gi)];
+    toks.forEach((tk, i) => {
+      const v = ROMAN[tk[1].toLowerCase()]; out.add(v);
+      if (tk[2] && toks[i+1]){ const w = ROMAN[toks[i+1][1].toLowerCase()]; for (let k = Math.min(v,w); k <= Math.max(v,w); k++) out.add(k); }
+    });
+  }
+  return out;
+}
+const STAGE_NAME = s => s === 0 ? 'Stage 0' : 'Stage ' + ['0','I','II','III','IV'][s];
+function ruleStage(t, P){
+  if (P.stage === null) return [];
+  const out = [], allowed = new Set(); let src = null;
+  for (const line of t.inc){
+    const before = allowed.size;
+    parseStages(line).forEach(s => allowed.add(s));
+    const l = line.toLowerCase();
+    if (/non-?metastatic/.test(l)) [0,1,2,3].forEach(s => allowed.add(s));
+    else if (/\bmetastatic\b/.test(l) && !/brain|cns/.test(l)) allowed.add(4);
+    if (/locally advanced/.test(l)) allowed.add(3);
+    if (/early[- ]stage/.test(l)) [0,1,2].forEach(s => allowed.add(s));
+    if (allowed.size > before && !src) src = line;
+  }
+  if (allowed.size){
+    const list = [...allowed].sort().map(STAGE_NAME).join(', ');
+    out.push(allowed.has(P.stage) ? sig('ok', `Stage fits (trial: ${list})`, src) : sig('no', `Trial is for ${list}`, src));
+  } else {
+    const title = t.title.toLowerCase();
+    if (P.stage <= 2 && /metastatic|advanced/.test(title)) out.push(sig('check', 'Trial title mentions advanced or metastatic disease', t.title));
+    if (P.stage === 4 && /early[- ]stage|localized|resectable/.test(title) && !/unresectable/.test(title)) out.push(sig('check', 'Trial title mentions early-stage disease', t.title));
+  }
+  if (P.stage === 4){
+    const ex = firstMatch(t.exc, /\bmetastatic disease\b|\bstage\s*(iv|4)\b|distant metasta/i);
+    if (ex && !/brain|cns|leptomening/i.test(ex)) out.push(sig('no', 'Excludes metastatic disease', ex));
+  }
+  return out;
+}
+
+// --- Time since diagnosis ---
+const toMonths = (n, u) => { u = u.toLowerCase(); return u.startsWith('day') ? n/30 : u.startsWith('week') ? n/4.35 : u.startsWith('year') ? n*12 : n; };
+function ruleDiagnosis(t, P){
+  if (P.monthsSince === null) return [];
+  const out = [];
+  const within = /within\s+(?:the\s+)?(?:past\s+|last\s+)?(\d+)\s*(day|week|month|year)s?\s+(?:of|from|after|since)\s+(?:the\s+)?(?:initial\s+|first\s+)?diagnos/i;
+  const atLeast = /diagnos\w*\s+(?:for\s+)?(?:at least|more than|≥|>=|>)\s*(\d+)\s*(day|week|month|year)/i;
+  const lw = firstMatch(t.inc, within);
+  if (lw){
+    const [, n, u] = within.exec(lw); const max = toMonths(+n, u);
+    out.push(P.monthsSince <= max ? sig('ok', `Diagnosed recently enough (within ${n} ${u}s)`, lw) : sig('no', `Must be within ${n} ${u}s of diagnosis`, lw));
+  }
+  const la = firstMatch(t.inc, atLeast);
+  if (la){
+    const [, n, u] = atLeast.exec(la); const min = toMonths(+n, u);
+    out.push(P.monthsSince >= min ? sig('ok', `Diagnosed long enough ago (at least ${n} ${u}s)`, la) : sig('no', `Must be diagnosed at least ${n} ${u}s ago`, la));
+  }
+  return out;
+}
+
+// --- Treatment status & history ---
+const TX = {
+  surgery:   { name: 'surgery', re: /surg|resection/i },
+  chemo:     { name: 'chemotherapy', re: /chemotherap/i },
+  radiation: { name: 'radiation', re: /radiation|radiotherap/i },
+  immuno:    { name: 'immunotherapy', re: /immunotherap|checkpoint inhibitor|anti-?pd-?l?1|anti-?ctla|pembrolizumab|nivolumab|atezolizumab|durvalumab|ipilimumab/i },
+  targeted:  { name: 'targeted therapy', re: /targeted therap|tyrosine kinase|\btkis?\b/i },
+  hormone:   { name: 'hormone therapy', re: /hormon(e|al) therap|endocrine therap|tamoxifen|aromatase inhibitor|antiandrogen|androgen deprivation/i },
+  transplant:{ name: 'stem cell transplant', re: /transplant/i },
+  cart:      { name: 'CAR-T', re: /car[- ]?t\b|chimeric antigen/i }
+};
+const NAIVE = /previously untreated|treatment[- ]na[iï]ve|untreated (?:with|for)|no prior (?:systemic |anti-?cancer )?(?:therapy|treatment|chemotherapy)|not (?:have )?(?:previously )?received (?:any )?(?:prior )?(?:systemic )?(?:therapy|treatment)|newly diagnosed/i;
+const PRETREATED = /relapsed|refractory|recurren|progress(?:ed|ion|ing)?\s+(?:on|after|following|despite)|at least (?:one|1|two|2) (?:prior|previous|line)|previously treated|after failure|failed (?:at least|prior|previous)/i;
+const WASHOUT = /within\s+\d+\s*(?:day|week|month)|\d+\s*(?:day|week)s?\s+(?:prior|before)|washout/i;
+function ruleTreatment(t, P){
+  const out = [];
+  const treated = P.tx.length > 0 || ['current','remission','relapsed','refractory'].includes(P.status);
+  const known = P.status !== '' || P.tx.length > 0;
+  if (!known) return out;
+  const naive = firstMatch(t.inc, NAIVE);
+  if (naive) out.push(treated ? sig('no', 'Trial is for people not yet treated', naive) : sig('ok', 'Trial is for newly diagnosed / untreated patients', naive));
+  const pre = firstMatch(t.inc, PRETREATED);
+  if (pre && !naive){
+    if (P.status === 'new') out.push(sig('no', 'Trial requires prior treatment or relapse', pre));
+    else if (['relapsed','refractory'].includes(P.status)) out.push(sig('ok', 'Trial is for relapsed / refractory disease, like yours', pre));
+    else if (P.status === 'current' || P.status === 'remission') out.push(sig('check', 'Trial mentions relapse or progression after treatment', pre));
+  }
+  for (const [key, tx] of Object.entries(TX)){
+    const had = P.tx.includes(key);
+    if (had){
+      const ex = t.exc.find(l => tx.re.test(l) && /prior|previous|received|history of|treated with|exposure/i.test(l));
+      if (ex) out.push(WASHOUT.test(ex) ? sig('check', `Recent ${tx.name} may need a waiting period`, ex) : sig('no', `Excludes people who had ${tx.name}`, ex));
+    } else if (P.tx.length){
+      const inc = t.inc.find(l => tx.re.test(l) && /prior|previous|received|after|following|progress/i.test(l));
+      if (inc) out.push(sig('check', `May require prior ${tx.name}`, inc));
+    }
+  }
+  return out;
+}
+
+// --- Biomarkers ---
+const POL_RE = '(positive|negative|pos\\b|neg\\b|\\+|mutat\\w*|amplif\\w*|fusion|rearrang\\w*|wild[- ]?type|low|high|express\\w*|[-–](?![a-z0-9]))';
+const polarity = w => { w = (w || '').toLowerCase();
+  if (/^(negative|neg|wild|-|–)/.test(w)) return 'neg';
+  if (w === 'low') return 'low';
+  return w ? 'pos' : null; };
+const ALIASES = { HER2: 'HER2|HER-2|ERBB2', ER: 'ER|estrogen receptor', PR: 'PR|PgR|progesterone receptor', HR: 'HR|hormone receptor', PDL1: 'PD-?L1' };
+function parseBiomarkers(s){
+  return s.split(/[,;]|\band\b/i).map(x => x.trim()).filter(Boolean).map(raw => {
+    const m = new RegExp(`^(.*?)\\s*${POL_RE}?\\s*$`, 'i').exec(raw);
+    let name = (m?.[1] || raw).trim().replace(/[-–\s]+$/, ''); const pol = polarity(m?.[2]);
+    const key = name.toUpperCase().replace(/[^A-Z0-9]/g, '');
+    const alt = ALIASES[key] || name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const flags = key.length <= 3 && !ALIASES[key] ? '' : (ALIASES[key] && key.length <= 2 ? '' : 'i');
+    return { name, pol, alt, flags };
+  }).filter(b => b.name.length >= 2);
+}
+function ruleBiomarkers(t, P){
+  const out = [];
+  const label = b => b.name + (b.pol === 'pos' ? '+' : b.pol === 'neg' ? '−' : b.pol === 'low' ? '-low' : '');
+  for (const b of P.bio){
+    const mention = new RegExp(`(?<![A-Za-z])(?:${b.alt})(?![A-Za-z])`, b.flags);
+    const withPol = new RegExp(`(?<![A-Za-z])(?:${b.alt})\\s*[-–]?\\s*(?:\\(\\s*)?${POL_RE}`, b.flags + 'g');
+    const polsIn = line => [...line.matchAll(withPol)].map(m => polarity(m[1]));
+    let decided = false;
+    for (const line of [...t.inc, t.title]){
+      const pols = polsIn(line); if (!pols.length || !b.pol) continue;
+      decided = true;
+      out.push(pols.includes(b.pol) ? sig('ok', `Matches your ${label(b)}`, line)
+        : sig('no', `Trial requires ${b.name}${pols[0] === 'pos' ? '+' : pols[0] === 'neg' ? '−' : '-low'}`, line));
+      break;
+    }
+    if (!decided){
+      const ex = t.exc.find(l => b.pol && polsIn(l).includes(b.pol));
+      if (ex){ out.push(sig('no', `Excludes ${label(b)}`, ex)); decided = true; }
+    }
+    if (!decided){
+      const blob = [t.title, t.summary, t.conditions.join(' '), t.keywords.join(' '), t.criteria].join(' \n ');
+      const line = [t.title, ...t.inc, t.summary].find(l => mention.test(l));
+      if (mention.test(blob)) out.push(sig('ok', `Mentions ${b.name}`, line));
+    }
+  }
+  return out;
+}
+
+// --- Activity level (ECOG / Karnofsky) ---
+const KPS = [100, 80, 60, 40, 20];
+function ruleECOG(t, P){
+  if (P.ecog === null) return [];
+  for (const line of t.inc){
+    let max = null, m;
+    if (/ecog|performance status|zubrod|\bps\b/i.test(line)){
+      if ((m = /(?:ecog|performance status|zubrod|\bps\b)[^\n]{0,60}?([0-4])\s*(?:-|–|to|or)\s*([0-4])/i.exec(line))) max = +m[2];
+      else if ((m = /(?:ecog|performance status|zubrod|\bps\b)[^\n]{0,40}?(≤|<=|<|less than or equal to|less than|of)\s*([0-4])\b/i.exec(line))) max = m[1] === '<' || m[1] === 'less than' ? +m[2] - 1 : +m[2];
+    }
+    if (max !== null) return [P.ecog <= max ? sig('ok', `Activity level fits (ECOG ≤ ${max})`, line) : sig('no', `Requires ECOG ${max} or better (yours ≈ ${P.ecog})`, line)];
+    if ((m = /karnofsky[^\n]{0,40}?(?:≥|>=|>|at least|of|score of)\s*(\d{2,3})/i.exec(line))){
+      const min = +m[1];
+      return [KPS[P.ecog] >= min ? sig('ok', `Activity level fits (Karnofsky ≥ ${min})`, line) : sig('no', `Requires Karnofsky ≥ ${min}`, line)];
+    }
+  }
+  return [];
+}
+
+// --- Other health conditions (mostly exclusions) ---
+const CONDS = {
+  brain:      { name: 'brain / spinal cord involvement', re: /brain|\bcns\b|central nervous system|leptomening/i, soft: /untreated|active|symptomatic|unstable|progressing/i },
+  heart:      { name: 'heart disease', re: /cardiac|heart failure|myocardial|cardiovascular|arrhythm|\bqtc?\b|congestive/i },
+  kidney:     { name: 'kidney disease', re: /renal|kidney|dialysis/i },
+  liver:      { name: 'liver disease', re: /hepatic|liver|cirrhosis/i },
+  hiv:        { name: 'HIV', re: /\bhiv\b|human immunodeficiency/i },
+  hep:        { name: 'hepatitis', re: /hepatitis|\bhbv\b|\bhcv\b/i },
+  autoimmune: { name: 'autoimmune disease', re: /autoimmune/i },
+  othercancer:{ name: 'another recent cancer', re: /(?:other|another|second|prior|previous|concurrent|additional)\s+(?:active\s+|invasive\s+|primary\s+)?(?:malignan|cancer)|history of (?:another |other )?malignan/i },
+  pregnant:   { name: 'pregnancy / breastfeeding', re: /pregnan|breast[- ]?feed|lactat|nursing/i, hard: true }
+};
+function ruleConditions(t, P){
+  const out = [];
+  for (const key of P.cx){
+    const c = CONDS[key]; const ex = t.exc.find(l => c.re.test(l));
+    if (!ex) continue;
+    if (c.hard) out.push(sig('no', `Excludes ${c.name}`, ex));
+    else if (key === 'brain') out.push(c.soft.test(ex) ? sig('check', 'Brain metastases allowed only if treated / stable', ex) : sig('no', 'Excludes brain metastases', ex));
+    else out.push(sig('check', `Exclusion mentions ${c.name}`, ex));
+  }
+  return out;
+}
+
+const RULES = [ruleAgeSex, ruleStage, ruleDiagnosis, ruleTreatment, ruleBiomarkers, ruleECOG, ruleConditions];
+
+function scoreTrial(sim, signals){
+  const nNo = signals.filter(s => s.kind === 'no').length;
+  const nCk = signals.filter(s => s.kind === 'check').length;
+  const nOk = signals.filter(s => s.kind === 'ok').length;
+  const mult = Math.pow(W.conflict, nNo) * Math.pow(W.check, nCk);
+  const bonus = Math.min(nOk * W.bonus, W.maxBonus);
+  return { final: Math.max(0, Math.min(1, sim * mult + bonus)), mult, bonus, nNo, nCk, nOk };
 }
 
 // ---------- Plain-English glossary ----------
@@ -240,31 +624,28 @@ const GLOSSARY = [
   [/randomi/i,'Randomized','A computer assigns you to a study group by chance.']
 ];
 
-function splitCriteria(text){
-  const inc = [], exc = []; let cur = inc;
-  text.split(/\r?\n/).forEach(raw => {
-    const line = raw.trim(); if (!line) return;
-    if (/^exclusion/i.test(line)) { cur = exc; return; }
-    if (/^inclusion/i.test(line)) { cur = inc; return; }
-    const clean = line.replace(/^([*\-•]|\d+[.)])\s*/, '');
-    if (clean.length > 3) cur.push(clean);
-  });
-  return { inc, exc };
-}
-
 // ---------- Rendering ----------
 let profileVec = null, profileText = '';
 function band(s, usingAI){
-  const strong = usingAI ? 0.55 : 0.6, good = usingAI ? 0.4 : 0.3;
+  const strong = usingAI ? 0.55 : 0.6, good = usingAI ? 0.42 : 0.3;
   return s >= strong ? ['s-strong','Strong match'] : s >= good ? ['s-good','Good match'] : ['s-maybe','Possible match'];
 }
+const ICON = { ok: '✓', no: '✕', check: '?' };
 
-function render(list, usingAI, loc, total){
-  if (!list.length){ resultsEl.innerHTML = '<div class="empty">No recruiting trials found. Try a broader condition name or a state instead of a city.</div>'; return; }
-  resultsEl.innerHTML = list.map(({t, s, chk}) => {
-    const [cls, lbl] = band(s, usingAI);
+function render(list, usingAI, loc){
+  if (!list.length){ resultsEl.innerHTML = '<div class="empty">No trials left to show. Try a broader condition name, a state instead of a city, or fewer preference filters.</div>'; return; }
+  resultsEl.innerHTML = list.map(({t, sim, signals, sc}) => {
+    const [cls, lbl] = band(sc.final, usingAI);
     const sites = nearbySites(t, loc);
     const contact = t.contacts[0];
+    const summaryChips = [
+      sc.nOk ? `<span class="chip ok">✓ ${sc.nOk} fit${sc.nOk > 1 ? 's' : ''}</span>` : '',
+      sc.nNo ? `<span class="chip no">✕ ${sc.nNo} likely conflict${sc.nNo > 1 ? 's' : ''}</span>` : '',
+      sc.nCk ? `<span class="chip check">? ${sc.nCk} to check</span>` : ''
+    ].join('');
+    const order = { no: 0, check: 1, ok: 2 };
+    const why = [...signals].sort((a,b) => order[a.kind] - order[b.kind]).map(s =>
+      `<li><span class="ic ${s.kind}">${ICON[s.kind]}</span><span>${esc(s.label)}${s.quote ? `<q>${esc(clip(s.quote))}</q>` : ''}</span></li>`).join('');
     return `<article class="card" data-id="${esc(t.id)}">
       <div class="top">
         <div>
@@ -272,20 +653,27 @@ function render(list, usingAI, loc, total){
           <div class="chips">
             <span class="chip">${esc(t.id)}</span>
             ${t.phases.map(p => `<span class="chip">${esc(p)}</span>`).join('')}
-            ${chk.map(c => `<span class="chip ${c.ok?'ok':'no'}">${c.ok?'✓':'✕'} ${esc(c.label)}</span>`).join('')}
+            ${summaryChips}
           </div>
         </div>
-        <div class="score ${cls}">${lbl}<br><span style="font-weight:500">${Math.round(s*100)}% similar</span></div>
+        <div class="score ${cls}"><b>${pct(sc.final)}</b>${lbl}</div>
       </div>
-      <p class="summary">${esc(t.summary.slice(0, 280))}${t.summary.length > 280 ? '…' : ''}</p>
+      <p class="summary">${esc(clip(t.summary, 280))}</p>
       ${t.interventions.length ? `<div class="sites"><b>Testing:</b> ${esc(t.interventions.slice(0,4).join(', '))}</div>` : ''}
       ${sites.length ? `<div class="sites"><b>Sites near you:</b> ${sites.map(x => esc([x.facility, x.city, x.state].filter(Boolean).join(', '))).join(' · ')}</div>` : ''}
-      <details><summary>Explain eligibility in plain English</summary><div class="crit">Loading…</div></details>
+      <details><summary>Why this rank</summary>
+        <ul class="why">
+          <li><span class="ic ai">◆</span><span>${usingAI ? 'AI similarity to your description' : 'Keyword overlap with your description'}: <b>${pct(sim)}</b></span></li>
+          ${why || '<li><span class="ic ai">·</span><span>No specific criteria matched your details. Add more under "More details" for sharper checks.</span></li>'}
+        </ul>
+        <div class="math">${pct(sim)} similarity × ${sc.mult.toFixed(2)} (${sc.nNo} conflict${sc.nNo === 1 ? '' : 's'}, ${sc.nCk} to check) + ${pct(sc.bonus)} (${sc.nOk} fit${sc.nOk === 1 ? '' : 's'}) = <b>${pct(sc.final)} fit</b></div>
+      </details>
+      <details class="elig"><summary>Explain eligibility in plain English</summary><div class="crit">Loading…</div></details>
       ${contact ? `<div class="contact"><b>Contact:</b> ${esc(contact.name || 'Study team')}${contact.phone ? ` · <a href="tel:${esc(contact.phone)}">${esc(contact.phone)}</a>` : ''}${contact.email ? ` · <a href="mailto:${esc(contact.email)}">${esc(contact.email)}</a>` : ''}</div>` : ''}
     </article>`;
   }).join('');
 
-  resultsEl.querySelectorAll('details').forEach(d => d.addEventListener('toggle', async () => {
+  resultsEl.querySelectorAll('details.elig').forEach(d => d.addEventListener('toggle', async () => {
     if (!d.open || d.dataset.done) return; d.dataset.done = 1;
     const t = list.find(x => x.t.id === d.closest('.card').dataset.id).t;
     await explain(t, d.querySelector('.crit'));
@@ -293,9 +681,8 @@ function render(list, usingAI, loc, total){
 }
 
 async function explain(t, box){
-  const { inc, exc } = splitCriteria(t.criteria);
+  const { inc, exc } = t;
   if (!inc.length && !exc.length){ box.textContent = 'No eligibility details listed. Check the study page.'; return; }
-  // AI step: find the criteria lines most relevant to this person's description
   let hot = new Set();
   const all = [...inc, ...exc];
   if (profileVec && profileText.trim()){
@@ -310,41 +697,83 @@ async function explain(t, box){
     ${found.length ? `<div class="gloss"><b>Jargon decoder</b><br>${found.map(([,term,def]) => `<b>${esc(term)}:</b> ${esc(def)}`).join('<br>')}</div>` : ''}`;
 }
 
+// ---------- Profile ----------
+const STATUS_TEXT = { new: 'newly diagnosed, not yet treated', current: 'currently in treatment', remission: 'finished treatment, in remission', relapsed: 'relapsed / recurrent after treatment', refractory: 'refractory, progressing on treatment' };
+function readProfile(){
+  const num = id => $(id).value === '' ? null : +$(id).value;
+  const diag = $('#diag').value; let monthsSince = null;
+  if (diag){ const [y, m] = diag.split('-').map(Number); const now = new Date(); monthsSince = (now.getFullYear() - y) * 12 + (now.getMonth() + 1 - m); }
+  const P = {
+    cond: $('#cond').value.trim(), loc: $('#loc').value.trim(), story: $('#story').value.trim(),
+    age: num('#age'), sex: $('#sex').value, stage: num('#stage'), monthsSince,
+    status: $('#txstatus').value, tx: getChecks('#tx'), bioRaw: $('#bio').value.trim(),
+    ecog: num('#ecog'), cx: getChecks('#cx'), prefs: new Set(getChecks('#prefs'))
+  };
+  P.bio = parseBiomarkers(P.bioRaw);
+  // Structured details also feed the AI's description so similarity reflects them
+  P.text = [
+    P.cond,
+    P.stage !== null ? (P.stage === 4 ? 'stage IV metastatic' : STAGE_NAME(P.stage)) : '',
+    P.bioRaw,
+    STATUS_TEXT[P.status] || '',
+    P.tx.length ? 'previously treated with ' + P.tx.map(k => TX[k].name).join(', ') : '',
+    P.story
+  ].filter(Boolean).join('. ');
+  return P;
+}
+
+function hiddenReason(t, P, signals, loc){
+  const isPh1Only = t.phasesRaw.length && t.phasesRaw.every(p => /PHASE1$/.test(p));
+  if (P.prefs.has('noPhase1') && isPh1Only) return 'phase';
+  if (P.prefs.has('noPlacebo') && /placebo/i.test(t.interventions.join(' ') + ' ' + t.summary)) return 'placebo';
+  if (P.prefs.has('nearOnly') && loc && !nearbySites(t, loc).length) return 'distance';
+  if (P.prefs.has('hideConflicts') && signals.some(s => s.kind === 'no')) return 'conflict';
+  return null;
+}
+
 // ---------- Main flow ----------
 $('#f').addEventListener('submit', async e => {
   e.preventDefault();
-  const cond = $('#cond').value.trim(), loc = $('#loc').value.trim(), story = $('#story').value.trim();
-  const age = $('#age').value === '' ? null : +$('#age').value, sex = $('#sex').value;
+  const P = readProfile();
   goBtn.disabled = true; resultsEl.innerHTML = '';
   try {
     setStatus('Loading the AI model (about 25 MB on first visit, cached after that) and searching ClinicalTrials.gov…');
     const modelP = getExtractor();
-    const data = await searchTrials(cond, loc);
+    const data = await searchTrials(P.cond, P.loc);
     const trials = (data.studies || []).map(normalize).filter(t => t.id);
-    if (!trials.length){ render([], false, loc, 0); setStatus(''); return; }
+    if (!trials.length){ render([], false, P.loc); setStatus(''); return; }
 
-    profileText = [cond, story].filter(Boolean).join('. ');
-    setStatus(`Found ${data.totalCount ?? trials.length} recruiting trials. Ranking the top ${trials.length} with AI…`);
+    profileText = P.text;
+    setStatus(`Found ${data.totalCount ?? trials.length} recruiting trials. Ranking the top ${trials.length} with AI and checking eligibility…`);
     await modelP;
     const docs = trials.map(t => [t.title, t.conditions.join(', '), t.keywords.join(', '), t.interventions.join(', '), t.summary.slice(0, 700)].join('. '));
     const vecs = await embed([profileText, ...docs]);
     const usingAI = !!vecs;
     profileVec = usingAI ? vecs[0] : null;
 
-    const scored = trials.map((t, i) => {
-      const chk = checks(t, age, sex);
-      let s = usingAI ? dot(vecs[i+1], profileVec) : keywordScore(profileText, docs[i]);
-      if (chk.some(c => !c.ok)) s *= 0.6; // push likely-ineligible trials down
-      return { t, s, chk };
-    }).sort((a,b) => b.s - a.s);
+    const hidden = { phase: 0, placebo: 0, distance: 0, conflict: 0 };
+    const scored = [];
+    trials.forEach((t, i) => {
+      const sim = usingAI ? Math.max(0, dot(vecs[i+1], profileVec)) : keywordScore(profileText, docs[i]);
+      const signals = RULES.flatMap(rule => { try { return rule(t, P); } catch (err) { console.warn(rule.name, err); return []; } });
+      const why = hiddenReason(t, P, signals, P.loc);
+      if (why){ hidden[why]++; return; }
+      scored.push({ t, sim, signals, sc: scoreTrial(sim, signals) });
+    });
+    scored.sort((a,b) => b.sc.final - a.sc.final);
 
-    render(scored, usingAI, loc, data.totalCount);
-    setStatus(`${data.totalCount ?? trials.length} recruiting trials found · top ${scored.length} ranked ${usingAI ? 'by AI similarity to your description' : 'by keyword overlap (the AI model could not load)'}.`);
+    render(scored, usingAI, P.loc);
+    const hiddenTotal = Object.values(hidden).reduce((a,b) => a+b, 0);
+    const hiddenTxt = hiddenTotal ? ` · ${hiddenTotal} hidden by your preferences (${Object.entries(hidden).filter(([,n]) => n).map(([k,n]) => `${n} ${k}`).join(', ')})` : '';
+    setStatus(`${data.totalCount ?? trials.length} recruiting trials found · showing ${scored.length} of the first ${trials.length}, ranked ${usingAI ? 'by AI similarity + eligibility checks' : 'by keyword overlap + eligibility checks (the AI model could not load)'}${hiddenTxt}.`);
   } catch (err){
     console.error(err);
     setStatus('Something went wrong: ' + err.message + '. Check your connection and try again.');
   } finally { goBtn.disabled = false; }
 });
+
+// Expose for testing in the browser console
+window.TrialMatch = { RULES, parseStages, parseBiomarkers, scoreTrial, W };
 </script>
 </body>
 </html>

@@ -8,6 +8,12 @@
 3. Runs quick eligibility checks (age, sex) and pushes likely mismatches down the list.
 4. Highlights the 3 eligibility criteria most relevant to you (the same AI model compares each criterion to your story), and decodes jargon such as ECOG, RECIST or "refractory" into plain English.
 
+### v2: patient details + explainable eligibility checks
+Optional fields: **stage, diagnosis date, biomarkers, treatment status, prior treatments, activity level (ECOG), other health conditions**, plus preferences (skip Phase 1, skip placebo, nearby sites only, hide conflicts).
+
+**Fit score** = AI similarity × 0.55 per likely conflict × 0.92 per "check with study team" + 4 pts per matching detail (max +12).
+Rules read each trial's inclusion/exclusion text, e.g. "Stage IIIB–IV", "previously untreated", "within 100 days of diagnosis", "HER2-negative", "ECOG 0–1", "untreated brain metastases". Every finding cites the exact criterion that triggered it ("Why this rank"), so the ranking can be audited. The weights live in one `W` object at the top of the script, so they're easy to tune against the baseline test set.
+
 The model runs entirely in the browser (Transformers.js), so there are no API costs and no personal health details leave the device. Only the condition and location are sent to ClinicalTrials.gov.
 
 **Live demo:** `https://<your-username>.github.io/<repo-name>/`
