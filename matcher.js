@@ -16,11 +16,16 @@ function getExtractor(){
   }
   return extractorPromise;
 }
-async function embed(texts){
+async function embed(texts, chunk = 8){
   const ex = await getExtractor();
   if (!ex) return null;
-  const out = await ex(texts, { pooling: 'mean', normalize: true });
-  return out.tolist();
+  const all = [];
+  for (let i = 0; i < texts.length; i += chunk){
+    const out = await ex(texts.slice(i, i + chunk), { pooling: 'mean', normalize: true });
+    all.push(...out.tolist());
+    await new Promise(r => setTimeout(r, 0)); // yield to the browser between batches
+  }
+  return all;
 }
 const dot = (a,b) => a.reduce((s,v,i) => s + v*b[i], 0);
 
@@ -317,6 +322,165 @@ function scoreTrial(sim, signals, w = W){
 }
 
 
+// ======================================================================
+// v3 — added after error analysis of the v2 gold-set evaluation.
+// v2 stays frozen above so the evaluation can compare v2 vs v3 fairly.
+// ======================================================================
+
+// Fix 1: recognise header variants ("Key Exclusion Criteria", "Exclusion Criteria for Main Study", "Other Exclusions")
+function splitCriteriaV3(text){
+  const inc = [], exc = []; let cur = inc;
+  text.split(/\r?\n/).forEach(raw => {
+    const line = raw.trim(); if (!line) return;
+    const isHeader = line.length < 90 && !/^([*\-•]|\d+[.)])/.test(line) && !/inclusion\s*\/\s*exclusion/i.test(line);
+    if (isHeader && /exclu/i.test(line) && !/inclusion/i.test(line)) { cur = exc; return; }
+    if (isHeader && /inclusion/i.test(line)) { cur = inc; return; }
+    const clean = line.replace(/^([*\-•]|\d+[.)])\s*/, '');
+    if (clean.length > 3) cur.push(clean);
+  });
+  return { inc, exc };
+}
+const V3CACHE = new WeakMap();
+export function withV3(t){ if (!V3CACHE.has(t)) V3CACHE.set(t, { ...t, ...splitCriteriaV3(t.criteria) }); return V3CACHE.get(t); }
+
+// Fix 2: biomarker polarity — "MSI-H" was read as "MSI negative" (lookahead ignored capitals)
+const POL_RE_V3 = POL_RE.replace('[-–](?![a-z0-9])', '[-–](?![A-Za-z0-9])');
+function ruleBiomarkersV3(t, P){
+  const out = [];
+  const label = b => b.name + (b.pol === 'pos' ? '+' : b.pol === 'neg' ? '−' : b.pol === 'low' ? '-low' : '');
+  for (const b of P.bio){
+    const mention = new RegExp(`(?<![A-Za-z])(?:${b.alt})(?![A-Za-z])`, b.flags);
+    const withPol = new RegExp(`(?<![A-Za-z])(?:${b.alt})\\s*[-–]?\\s*(?:\\(\\s*)?${POL_RE_V3}`, b.flags + 'g');
+    const polsIn = line => [...line.matchAll(withPol)].map(m => polarity(m[1]));
+    let decided = false;
+    for (const line of [...t.inc, t.title]){
+      const pols = polsIn(line); if (!pols.length || !b.pol) continue;
+      decided = true;
+      out.push(pols.includes(b.pol) ? sig('ok', `Matches your ${label(b)}`, line)
+        : sig('no', `Trial requires ${b.name}${pols[0] === 'pos' ? '+' : pols[0] === 'neg' ? '−' : '-low'}`, line));
+      break;
+    }
+    if (!decided){ const ex = t.exc.find(l => b.pol && polsIn(l).includes(b.pol)); if (ex){ out.push(sig('no', `Excludes ${label(b)}`, ex)); decided = true; } }
+    if (!decided){ const line = [t.title, ...t.inc, t.summary].find(l => mention.test(l)); if (line) out.push(sig('ok', `Mentions ${b.name}`, line)); }
+  }
+  return out;
+}
+
+// New 1: trials that require a specific mutation the patient's results don't include
+const GENES = ['PIK3CA','KRAS','NRAS','HRAS','RAS','BRAF','EGFR','ALK','ROS1','RET','MET','NTRK','HER2','ERBB2','HER3','BRCA1/2','BRCA1','BRCA2','BRCA',
+  'ATM','CDK12','CHEK2','PALB2','TP53','p53','ESR1','FGFR1','FGFR2','FGFR3','FGFR','IDH1','IDH2','FLT3','NPM1','KIT','PDGFRA','MSI-H','dMMR','CLDN18.2','SOD1','FUS','C9orf72'];
+const GENE_GROUP = g => { g = g.toUpperCase();
+  if (/^BRCA/.test(g)) return 'BRCA'; if (/^(MSI|DMMR|MMR)/.test(g)) return 'MSI'; if (/^(HER2|ERBB2)$/.test(g)) return 'HER2';
+  if (/^(TP53|P53)$/.test(g)) return 'TP53'; if (/^FGFR/.test(g)) return 'FGFR'; if (/^(K|N|H)?RAS$/.test(g)) return 'RAS:' + g; return g; };
+const sameGene = (a, b) => { const A = GENE_GROUP(a), B = GENE_GROUP(b); if (A === B) return true;
+  if (A.startsWith('RAS:') && B.startsWith('RAS:')) return A === 'RAS:RAS' || B === 'RAS:RAS'; return false; };
+const GENE_RE = new RegExp(`(?<![A-Za-z0-9])(${GENES.map(g => g.replace(/[.*+?^${}()|[\]\\/]/g, '\\$&')).join('|')})(?![A-Za-z0-9])`, 'g');
+const POS_CUE = /mutat|mutant|alteration|altered|amplif|fusion|rearrang|variant|deficien|overexpress|harbor|skipping|positive|\bG12[CDV]\b|V600E|R175H|exon/i;
+function ruleRequiredMarkers(t, P){
+  const out = [];
+  const mine = P.bio.filter(b => b.pol !== 'neg').map(b => b.name);
+  const mineNeg = P.bio.filter(b => b.pol === 'neg').map(b => b.name);
+  for (const line of [t.title, ...t.inc]){
+    const req = [];
+    for (const m of line.matchAll(GENE_RE)){
+      const g = m[1], i = m.index, before = line.slice(Math.max(0, i - 30), i), after = line.slice(i + g.length, i + g.length + 45);
+      if (/\b(no|not|without|lack of|absence of|no known|excluding|negative for)\b[^.;]*$/i.test(before) || /anti-?\s*$/i.test(before)) continue;
+      if (/^\s*[-–]?\s*(negative|neg\b|low\b|wild|0\b|\(?ihc 0)/i.test(after)) continue;
+      if (/^[\s\-–]*(\w+\s+){0,2}(inhibitor|tki|antibod|targeting|directed|agent|therap|degrader)/i.test(after)) continue;
+      if (!POS_CUE.test(before.slice(-25) + ' ' + g + ' ' + after) && g !== 'MSI-H' && g !== 'dMMR') continue;
+      req.push(g);
+    }
+    if (!req.length) continue;
+    const uniq = [...new Set(req)];
+    if (uniq.some(g => mine.some(x => sameGene(x, g)))) { out.push(sig('ok', `Requires ${uniq.join(' / ')}, which matches your results`, line)); return out; }
+    if (uniq.every(g => mineNeg.some(x => sameGene(x, g)))) { out.push(sig('no', `Requires ${uniq.join(' / ')} (yours is negative)`, line)); return out; }
+    out.push(P.bio.length ? sig('no', `Requires ${uniq.join(' / ')} (not in your test results)`, line) : sig('check', `Requires ${uniq.join(' / ')} testing`, line));
+    return out;
+  }
+  return out;
+}
+
+// New 2: disease setting — treatment stage, prior studies, prevention studies, required prior drugs
+const NUMW = { one:1, two:2, three:3, four:4, five:5, six:6, seven:7, eight:8, nine:9, ten:10, twelve:12 };
+const nOf = s => NUMW[s.toLowerCase()] ?? +s;
+const NUM = '(\\d+|one|two|three|four|five|six|seven|eight|nine|ten|twelve)';
+const PRIOR_CLASS = [
+  { re: /cdk\s?4\s?\/\s?6/i, need: 'targeted', name: 'a CDK4/6 inhibitor' },
+  { re: /parp inhibitor/i, need: 'targeted', name: 'a PARP inhibitor' },
+  { re: /anti-?pd-?l?1|checkpoint inhibitor|immunotherap/i, need: 'immuno', name: 'immunotherapy' },
+  { re: /platinum|taxane|chemotherap/i, need: 'chemo', name: 'chemotherapy' },
+  { re: /endocrine|hormon(e|al) therap|abiraterone|enzalutamide|ar[- ]signal|androgen receptor (pathway|signal)|\barpi\b/i, need: 'hormone', name: 'hormone therapy' }
+];
+function ruleSetting(t, P){
+  const out = [], inc = t.inc, title = t.title;
+  const curative = P.stage !== null && P.stage <= 3 && !['relapsed','refractory'].includes(P.status);
+  const condWords = P.cond.toLowerCase().replace(/\b(type|stage|early|advanced|metastatic|recurrent|new|newly|diagnosed|non-small|small|cell)\b|\d/g, ' ').trim().split(/\s+/).filter(w => w.length > 2);
+  const condRe = condWords.length ? new RegExp(condWords.map(w => w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('\\s+'), 'i') : null;
+
+  // a) curative-setting patient vs trials for advanced / metastatic disease
+  if (curative){
+    const ADV = /\b(unresectable|metastatic|locally advanced|advanced (or metastatic )?(solid )?(tumou?rs?|malignanc\w*|cancer|disease|carcinoma)|refractory)\b/i;
+    const line = [title, ...inc].find(l => ADV.test(l) && !/non-?metastatic|early[- ]stage|resectable(?!\s)|no (definitive )?(radiographic )?evidence of disease/i.test(l));
+    if (line) out.push(sig('no', 'Trial is for advanced or metastatic disease', line));
+  }
+  // b) castration-resistant vs castration-sensitive prostate cancer
+  const crpc = [title, ...inc].find(l => /castrat\w*[- ]resistant|\bm?CRPC\b/i.test(l) && !/sensitive|\bm?CSPC\b|naive/i.test(l));
+  if (crpc && P.status && P.status !== 'refractory') out.push(sig('no', 'Trial is for castration-resistant disease', crpc));
+  // c) requires prior surgery
+  const surg = [title, ...inc].find(l => /(must have (had|undergone)|have undergone|treated (primarily )?with|scheduled (to undergo|for)|undergoing|underwent|status post|after|following)[^.;]{0,40}?(radical prostatectomy|prostatectomy|mastectomy|lumpectomy|surgical resection|surgery)/i.test(l));
+  if (surg && (P.status || P.tx.length) && !P.tx.includes('surgery')) out.push(sig('no', 'Requires surgery you haven\'t had', surg));
+  // d) only for people already in an earlier study
+  const prior = inc.find(l => /(prior|previous(ly)?)\s+(participant|enrolled)|previously enrolled|completed (the )?(parent|prior|previous) (study|trial)|rollover/i.test(l));
+  if (prior) out.push(sig('no', 'Only for people already enrolled in an earlier study', prior));
+  // e) prevention / at-risk studies when the patient already has the condition
+  if (condRe){
+    const cueCond = condRe ? new RegExp(`\\b(already|history of|diagnosis of|diagnosed with|prior|have|has)\\s+(\\S+\\s+){0,5}?${condRe.source}`, 'i') : null;
+    const exHas = t.exc.find(l => cueCond.test(l) && !/other type|another|other than|except|since/i.test(l));
+    const atRisk = /\bat[- ]risk\b|prevention|\bprevent\b|delay (of |the )?(onset|stage)|screening/i.test(title);
+    if (exHas) out.push(sig('no', `Excludes people who already have ${condWords.join(' ')}`, exHas));
+    else if (atRisk) out.push(sig('no', 'Prevention / at-risk study for people without the condition', title));
+  }
+  // f) triple-negative breast cancer vs receptor-positive patient
+  const tnbc = [title, ...inc].find(l => /triple[- ]negative|\bTNBC\b/i.test(l) && !/^(participants|patients) with triple/i.test(l));
+  if (tnbc && P.bio.some(b => /^(ER|PR|HR|HER2)$/i.test(b.name.replace(/[^A-Za-z0-9]/g, '')) && b.pol === 'pos') && !/HR\+|hormone receptor[- ]positive/i.test(title))
+    out.push(sig('no', 'Trial is for triple-negative breast cancer', tnbc));
+  // g) requires brain metastases the patient doesn't have
+  const brain = [title, ...inc].find(l => /(brain|intracranial|leptomening)[^.;]{0,25}(metasta|lesion)/i.test(l) && /(must|at least one|presence of|with|have|newly diagnosed)/i.test(l) && !/not eligible|exclud|untreated or|symptomatic|unless|stable/i.test(l));
+  if (brain && !P.cx.includes('brain')) out.push(sig('no', 'Trial is for people with brain metastases', brain));
+  // h) requires progression on a drug class the patient hasn't had
+  if (P.tx.length || P.status){
+    for (const pc of PRIOR_CLASS){
+      const l = inc.find(x => pc.re.test(x) && /(progress\w*\s+(on|after|following|during|despite)|refractory to|(after|following)\s+(prior|treatment|receiving|failure|at least)|received\s+(at least|prior|previous|\d|one|two)|prior\s+(treatment|therapy|therapies|line)|previously treated)/i.test(x) && !/no prior|not (have )?received|naive|na[iï]ve|without prior/i.test(x));
+      if (l && !P.tx.includes(pc.need)){ out.push(sig('no', `Requires prior ${pc.name}`, l)); break; }
+    }
+  }
+  return out;
+}
+
+// Better time-since-diagnosis parsing ("within 21 days following diagnosis", "diagnosed within two months", "duration ≥6 months")
+function ruleDiagnosisV3(t, P){
+  if (P.monthsSince === null) return [];
+  const out = [];
+  const pats = [
+    { re: new RegExp(`within\\s+(?:the\\s+)?(?:past\\s+|last\\s+)?${NUM}\\s*(day|week|month|year)s?[^.;\\n]{0,40}?diagnos`, 'i'), kind: 'max' },
+    { re: new RegExp(`diagnos\\w*[^.;\\n]{0,40}?within\\s+(?:the\\s+)?(?:past\\s+|last\\s+)?${NUM}\\s*(day|week|month|year)s?`, 'i'), kind: 'max' },
+    { re: new RegExp(`(?:diagnos\\w*|duration)\\s+(?:of\\s+\\w+\\s+)?(?:for\\s+)?(?:at least|more than|≥|>=|>)\\s*${NUM}\\s*(day|week|month|year)`, 'i'), kind: 'min' },
+    { re: new RegExp(`duration\\s*(?:≥|>=|>|of at least)\\s*${NUM}\\s*(day|week|month|year)`, 'i'), kind: 'min' }
+  ];
+  for (const p of pats){
+    const line = t.inc.find(l => p.re.test(l)); if (!line) continue;
+    const [, n, u] = p.re.exec(line); const months = toMonths(nOf(n), u);
+    if (p.kind === 'max') out.push(P.monthsSince <= months ? sig('ok', `Diagnosed recently enough (within ${n} ${u}s)`, line) : sig('no', `Must be within ${n} ${u}s of diagnosis`, line));
+    else out.push(P.monthsSince >= months ? sig('ok', `Diagnosed long enough ago (${n}+ ${u}s)`, line) : sig('no', `Must have had the condition at least ${n} ${u}s`, line));
+    break;
+  }
+  return out;
+}
+
+export const RULES_V3 = [ruleAgeSex, ruleStage, ruleDiagnosisV3, ruleTreatment, ruleBiomarkersV3, ruleECOG, ruleConditions, ruleRequiredMarkers, ruleSetting];
+export const runRulesV3 = (t, P) => runRules(withV3(t), P, RULES_V3);
+
+
 // ---------- Profile ----------
 export const STATUS_TEXT = { new: 'newly diagnosed, not yet treated', current: 'currently in treatment', remission: 'finished treatment, in remission', relapsed: 'relapsed / recurrent after treatment', refractory: 'refractory, progressing on treatment' };
 
@@ -359,8 +523,8 @@ export function hiddenReason(t, P, signals, loc){
 // ---------- Ranking systems (used by the evaluation) ----------
 export const trialDoc = t => [t.title, t.conditions.join(', '), t.keywords.join(', '), t.interventions.join(', '), t.summary.slice(0, 700)].join('. ');
 
-export function runRules(t, P){
-  return RULES.flatMap(rule => { try { return rule(t, P); } catch (err) { console.warn(rule.name, err); return []; } });
+export function runRules(t, P, rules = RULES){
+  return rules.flatMap(rule => { try { return rule(t, P); } catch (err) { console.warn(rule.name, err); return []; } });
 }
 
 // Baseline 0: ClinicalTrials.gov's own order (no AI)
@@ -380,5 +544,11 @@ export function rankV2(trials, sims, P, w = W){
     .sort((a, b) => b.s - a.s).map(x => x.id);
 }
 
+// v3 (current app): same similarity as v2, expanded eligibility rules
+export function rankV3(trials, sims, P, w = W){
+  return trials.map((t, i) => ({ id: t.id, s: scoreTrial(sims[i], runRulesV3(t, P), w).final }))
+    .sort((a, b) => b.s - a.s).map(x => x.id);
+}
+
 export { getExtractor, embed, dot, words, keywordScore, searchTrials, parseAge, PHASE_LABEL, splitCriteria, normalize, nearbySites,
-  RULES, parseStages, STAGE_NAME, TX, parseBiomarkers, scoreTrial, ruleAgeSex };
+  RULES, parseStages, STAGE_NAME, TX, parseBiomarkers, scoreTrial, ruleAgeSex, splitCriteriaV3 };

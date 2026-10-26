@@ -12,14 +12,14 @@
   --bg:#f6f4ef; --card:#ffffff; --ink:#1d2433; --muted:#5d6577; --line:#e3dfd6;
   --accent:#2f6f62; --accent-soft:#e3f0ec; --warn:#a1580f; --warn-soft:#fbefe1;
   --bad:#a33a3a; --bad-soft:#f8e6e6; --chip:#efece5; --focus:#2f6f62;
-  --sys0:#9aa0ab; --sys1:#5b7fb8; --sys2:#2f6f62;
+  --sys0:#9aa0ab; --sys1:#5b7fb8; --sys2:#9a6fb0; --sys3:#2f6f62;
 }
 @media (prefers-color-scheme: dark){
   :root:not([data-theme="light"]){
     --bg:#14171d; --card:#1c2029; --ink:#e9e7e2; --muted:#a3a9b6; --line:#2d3340;
     --accent:#6cc2ae; --accent-soft:#1d3530; --warn:#e3a35c; --warn-soft:#3a2b1b;
     --bad:#e38a8a; --bad-soft:#3a2222; --chip:#262b36; --focus:#6cc2ae;
-    --sys0:#6c7280; --sys1:#7c9fd6; --sys2:#6cc2ae;
+    --sys0:#6c7280; --sys1:#7c9fd6; --sys2:#b993d6; --sys3:#6cc2ae;
   }
 }
 *{box-sizing:border-box}
@@ -93,7 +93,7 @@ textarea.summary{width:100%;min-height:180px;font:13px/1.5 ui-monospace,SFMono-R
 <div class="wrap">
   <a class="badge" href="./">← Back to TrialMatch</a>
   <h1>TrialMatch Evaluation</h1>
-  <p class="muted">Tests three ranking systems on the same gold set of patient cases with blind human labels: <b>No AI</b> (ClinicalTrials.gov's own order), <b>v1</b> (AI similarity on condition and story, the original app) and <b>v2</b> (AI similarity on the full profile plus eligibility rules, the current app).</p>
+  <p class="muted">Tests four ranking systems on the same gold set of patient cases with blind labels: <b>No AI</b> (ClinicalTrials.gov's own order), <b>v1</b> (AI similarity on condition and story, the original app), <b>v2</b> (AI similarity on the full profile plus eligibility rules) and <b>v3</b> (v2 plus expanded eligibility rules built from v2's error analysis, the current app).</p>
 
   <div class="tabs" role="tablist">
     <button role="tab" data-tab="build" aria-selected="true">1 · Test set</button>
@@ -136,6 +136,8 @@ textarea.summary{width:100%;min-height:180px;font:13px/1.5 ui-monospace,SFMono-R
           <li><b>Good match (2):</b> the trial is for this patient's condition and situation, and nothing you can see in the criteria rules them out.</li>
           <li><b>Right disease, but likely excluded (1):</b> relevant condition, but a criterion probably rules them out (stage, prior treatment, biomarker, brain metastases, age…).</li>
           <li><b>Not relevant (0):</b> wrong condition, healthy-volunteer study, or wouldn't help this patient.</li>
+          <li>Treat the patient's listed biomarkers and treatments as complete: if a trial requires a mutation or prior drug that isn't listed, label it 1. Details the profile doesn't ask about (histology, lab values, imaging) are assumed fine.</li>
+          <li>Observational or testing studies the patient qualifies for count as a good match (2).</li>
           <li>You can't see which system ranked a trial, or its score. That keeps labels unbiased.</li>
           <li>Keyboard: <b>2</b>, <b>1</b>, <b>0</b> to label · <b>←</b> / <b>→</b> to move.</li>
         </ul>
@@ -151,8 +153,9 @@ textarea.summary{width:100%;min-height:180px;font:13px/1.5 ui-monospace,SFMono-R
       <p class="muted small" id="resMeta"></p>
       <div class="legend">
         <span><i style="background:var(--sys0)"></i>No AI (API order)</span>
-        <span><i style="background:var(--sys1)"></i>v1 baseline</span>
-        <span><i style="background:var(--sys2)"></i>v2 improved</span>
+        <span><i style="background:var(--sys1)"></i>v1 original</span>
+        <span><i style="background:var(--sys2)"></i>v2 baseline</span>
+        <span><i style="background:var(--sys3)"></i>v3 current</span>
       </div>
       <div class="bars" id="bars"></div>
       <div class="tablewrap" style="margin-top:14px"><table id="metricTable"></table></div>
@@ -167,13 +170,13 @@ textarea.summary{width:100%;min-height:180px;font:13px/1.5 ui-monospace,SFMono-R
 
     <div class="panel">
       <h2>Validating the eligibility rules</h2>
-      <p class="muted small">Among trials you labeled relevant (1 or 2): when v2 flags a <b>✕ likely conflict</b>, did you also judge the patient excluded?</p>
+      <p class="muted small">Among trials labeled relevant (1 or 2): when the rules flag a <b>✕ likely conflict</b>, did the labeler also judge the patient excluded? Recall = share of excluded trials the rules caught.</p>
       <div class="tablewrap"><table id="ruleTable"></table></div>
     </div>
 
     <div class="panel">
-      <h2>Iterate: tune v2's weights</h2>
-      <p class="muted small">Move the sliders and v2 re-ranks instantly. If new, unlabeled trials enter a top 5, label them in step 2 so the comparison stays fair.</p>
+      <h2>Iterate: tune v3's weights</h2>
+      <p class="muted small">Move the sliders and v3 re-ranks instantly (v2 stays frozen at the app's original weights). If new, unlabeled trials enter a top 5, label them in step 2 so the comparison stays fair.</p>
       <div class="sliders">
         <div><label>Penalty per conflict: <span id="wcV"></span></label><input type="range" id="wc" min="0.1" max="1" step="0.05"></div>
         <div><label>Penalty per "check": <span id="wkV"></span></label><input type="range" id="wk" min="0.5" max="1" step="0.02"></div>
@@ -195,7 +198,7 @@ textarea.summary{width:100%;min-height:180px;font:13px/1.5 ui-monospace,SFMono-R
 
 <script type="module">
 import { W, getExtractor, embed, dot, keywordScore, searchTrials, normalize, splitCriteria, PHASE_LABEL,
-  buildProfile, trialDoc, runRules, rankApi, rankV1, rankV2 } from './matcher.js';
+  buildProfile, trialDoc, runRules, runRulesV3, rankApi, rankV1, rankV2, rankV3 } from './matcher.js';
 
 const $ = s => document.querySelector(s), $$ = s => [...document.querySelectorAll(s)];
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -243,12 +246,12 @@ function caseOf(id){ return state.snapshot.cases.find(c => c.id === id); }
 function profileFor(c){ return buildProfile(c.case, new Date(state.snapshot.createdAt)); }
 function rankingsFor(c){
   const trials = hydrated[c.id], P = profileFor(c);
-  return { api: rankApi(trials), v1: rankV1(trials, c.simsV1, P), v2: rankV2(trials, c.simsV2, P, weights) };
+  return { api: rankApi(trials), v1: rankV1(trials, c.simsV1, P), v2: rankV2(trials, c.simsV2, P, W), v3: rankV3(trials, c.simsV2, P, weights) };
 }
 function queue(){
   const q = [];
   for (const c of state.snapshot.cases){
-    const r = rankingsFor(c); const ids = new Set([...r.api.slice(0,K), ...r.v1.slice(0,K), ...r.v2.slice(0,K)]);
+    const r = rankingsFor(c); const ids = new Set([...r.api.slice(0,K), ...r.v1.slice(0,K), ...r.v2.slice(0,K), ...r.v3.slice(0,K)]);
     // stable pseudo-random order within a case so labelers can't infer the system from position
     [...ids].sort((a,b) => hash(c.id + a) - hash(c.id + b)).forEach(id => q.push({ caseId: c.id, id }));
   }
@@ -395,7 +398,7 @@ document.addEventListener('keydown', e => {
 });
 
 // ---------- 3. Metrics ----------
-const SYS = [ { key:'api', name:'No AI', color:'var(--sys0)' }, { key:'v1', name:'v1 baseline', color:'var(--sys1)' }, { key:'v2', name:'v2 improved', color:'var(--sys2)' } ];
+const SYS = [ { key:'api', name:'No AI', color:'var(--sys0)' }, { key:'v1', name:'v1 original', color:'var(--sys1)' }, { key:'v2', name:'v2 baseline', color:'var(--sys2)' }, { key:'v3', name:'v3 current', color:'var(--sys3)' } ];
 const METRICS = [
   { key:'good', name:'Good@5', desc:'Share of top 5 that are good matches (main metric)', higher:true },
   { key:'ndcg', name:'nDCG@5', desc:'Ranking quality, rewarding good matches near the top', higher:true },
@@ -424,31 +427,35 @@ function computeAll(){
     agg[s.key] = {};
     for (const m of [...METRICS.map(m => m.key), 'judged']) agg[s.key][m] = perCase.reduce((a, row) => a + row.sys[s.key][m], 0) / perCase.length;
   }
-  // rule validation (v2 conflict flags vs human labels) on relevant trials
-  let tp = 0, fp = 0, fn = 0, tn = 0;
-  for (const c of state.snapshot.cases){
-    const P = profileFor(c); const labels = state.labels[c.id] || {};
-    for (const t of hydrated[c.id]){
-      const l = labels[t.id]; if (l !== 1 && l !== 2) continue;
-      const flagged = runRules(t, P).some(s => s.kind === 'no');
-      if (flagged && l === 1) tp++; else if (flagged && l === 2) fp++; else if (!flagged && l === 1) fn++; else tn++;
+  // rule validation (conflict flags vs human labels) on relevant trials, for v2 and v3 rule sets
+  const rules = {};
+  for (const [key, run] of [['v2', runRules], ['v3', runRulesV3]]){
+    let tp = 0, fp = 0, fn = 0, tn = 0;
+    for (const c of state.snapshot.cases){
+      const P = profileFor(c); const labels = state.labels[c.id] || {};
+      for (const t of hydrated[c.id]){
+        const l = labels[t.id]; if (l !== 1 && l !== 2) continue;
+        const flagged = run(t, P).some(s => s.kind === 'no');
+        if (flagged && l === 1) tp++; else if (flagged && l === 2) fp++; else if (!flagged && l === 1) fn++; else tn++;
+      }
     }
+    rules[key] = { tp, fp, fn, tn, prec: tp + fp ? tp / (tp + fp) : null, rec: tp + fn ? tp / (tp + fn) : null };
   }
   const nLabels = Object.values(state.labels).reduce((a, o) => a + Object.keys(o).length, 0);
   const dist = [0,1,2].map(v => Object.values(state.labels).reduce((a, o) => a + Object.values(o).filter(x => x === v).length, 0));
-  return { perCase, agg, rules: { tp, fp, fn, tn }, nLabels, dist };
+  return { perCase, agg, rules, nLabels, dist };
 }
 
 function renderResults(){
   if (!state.snapshot){ $('#bars').innerHTML = '<p class="muted">Build and label the pool first.</p>'; return; }
   const R = computeAll(); const A = R.agg;
-  $('#resMeta').textContent = `${R.perCase.length} patient cases · ${R.nLabels} human labels (${R.dist[2]} good, ${R.dist[1]} excluded, ${R.dist[0]} not relevant) · trials frozen ${new Date(state.snapshot.createdAt).toLocaleDateString()} · similarity: ${state.snapshot.method}`;
+  $('#resMeta').textContent = `${R.perCase.length} patient cases · ${R.nLabels} labels by ${state.snapshot.labeler || 'a reviewer'} (${R.dist[2]} good, ${R.dist[1]} excluded, ${R.dist[0]} not relevant) · trials frozen ${new Date(state.snapshot.createdAt).toLocaleDateString()} · similarity: ${state.snapshot.method}`;
   $('#bars').innerHTML = METRICS.map(m => `<div class="metric"><div class="name">${m.name}<small>${m.desc}${m.higher ? '' : ' (lower is better)'}</small></div><div>
     ${SYS.map(s => `<div class="bar"><span class="small">${s.name}</span><div class="track"><div class="fill" style="width:${Math.round(A[s.key][m.key]*100)}%;background:${s.color}"></div></div><span class="v">${pct(A[s.key][m.key])}</span></div>`).join('')}
   </div></div>`).join('');
-  const delta = (m) => { const d = A.v2[m.key] - A.v1[m.key]; const good = m.higher ? d > 0 : d < 0; if (Math.abs(d) < 0.005) return '<span class="muted">±0</span>';
+  const delta = (m) => { const d = A.v3[m.key] - A.v2[m.key]; const good = m.higher ? d > 0 : d < 0; if (Math.abs(d) < 0.005) return '<span class="muted">±0</span>';
     return `<span class="${good ? 'delta-up' : 'delta-down'}">${d > 0 ? '+' : '−'}${Math.round(Math.abs(d) * 100)} pts</span>`; };
-  $('#metricTable').innerHTML = `<tr><th>Metric</th>${SYS.map(s => `<th>${s.name}</th>`).join('')}<th>v2 vs v1</th></tr>` +
+  $('#metricTable').innerHTML = `<tr><th>Metric</th>${SYS.map(s => `<th>${s.name}</th>`).join('')}<th>v3 vs v2</th></tr>` +
     METRICS.map(m => `<tr><td>${m.name}</td>${SYS.map(s => `<td>${pct(A[s.key][m.key])}</td>`).join('')}<td>${delta(m)}</td></tr>`).join('');
   const minJ = Math.min(...SYS.map(s => A[s.key].judged));
   $('#coverage').innerHTML = minJ < K - 0.001
@@ -459,37 +466,36 @@ function renderResults(){
   $('#caseTable').innerHTML = `<tr><th>Case</th>${SYS.map(s => `<th>${s.name}</th>`).join('')}<th>Labeled</th></tr>` +
     R.perCase.map(row => `<tr><td>${esc(row.c.case.name)}</td>${SYS.map(s => `<td>${pct(row.sys[s.key].good)}</td>`).join('')}<td>${Object.keys(state.labels[row.c.id] || {}).length}</td></tr>`).join('');
 
-  const { tp, fp, fn, tn } = R.rules; const prec = tp + fp ? tp / (tp + fp) : null, rec = tp + fn ? tp / (tp + fn) : null;
-  $('#ruleTable').innerHTML = `<tr><th></th><th>You: likely excluded (1)</th><th>You: good match (2)</th></tr>
-    <tr><td>v2 flagged ✕ conflict</td><td>${tp} <span class="muted small">correct catch</span></td><td>${fp} <span class="muted small">false alarm</span></td></tr>
-    <tr><td>v2 no conflict</td><td>${fn} <span class="muted small">missed</span></td><td>${tn} <span class="muted small">correct pass</span></td></tr>
-    <tr><td><b>Precision</b> ${pct(prec)}</td><td colspan="2"><b>Recall</b> ${pct(rec)} <span class="muted small">(share of excluded trials the rules caught)</span></td></tr>`;
+  $('#ruleTable').innerHTML = `<tr><th>Rule set</th><th>Correct catches</th><th>False alarms</th><th>Missed</th><th>Correct passes</th><th>Precision</th><th>Recall</th></tr>` +
+    ['v2','v3'].map(k => { const r = R.rules[k]; return `<tr><td>${k === 'v2' ? 'v2 baseline' : 'v3 current'}</td><td>${r.tp}</td><td>${r.fp}</td><td>${r.fn}</td><td>${r.tn}</td><td><b>${pct(r.prec)}</b></td><td><b>${pct(r.rec)}</b></td></tr>`; }).join('');
 
-  $('#summary').value = summaryText(R, prec, rec);
+  $('#summary').value = summaryText(R);
 }
 
-function summaryText(R, prec, rec){
+function summaryText(R){
   const A = R.agg; const f = (s, m) => pct(A[s][m]);
   const wChanged = JSON.stringify(weights) !== JSON.stringify(W);
   return [
 `TrialMatch evaluation (${new Date().toLocaleDateString()})`,
 ``,
 `Gold set: ${R.perCase.length} patient cases (${R.perCase.map(r => r.c.case.name).join('; ')}).`,
-`For each case, the same ${R.perCase.map(r => r.c.trials.length).join('/')} recruiting trials were frozen from ClinicalTrials.gov on ${new Date(state.snapshot.createdAt).toLocaleDateString()}. The top ${K} from each system were pooled and labeled blind (system and score hidden): ${R.nLabels} labels, ${R.dist[2]} good match / ${R.dist[1]} likely excluded / ${R.dist[0]} not relevant.`,
+`For each case, the same ${R.perCase.map(r => r.c.trials.length).join('/')} recruiting trials were frozen from ClinicalTrials.gov on ${new Date(state.snapshot.createdAt).toLocaleDateString()}. The top ${K} from each system were pooled and labeled blind (system and score hidden) by ${state.snapshot.labeler || 'a reviewer'}: ${R.nLabels} labels, ${R.dist[2]} good match / ${R.dist[1]} likely excluded / ${R.dist[0]} not relevant.`,
 `Similarity method: ${state.snapshot.method}.`,
 ``,
 `Systems:`,
 `- No AI: ClinicalTrials.gov's default order`,
-`- v1 (baseline): AI similarity on condition + free-text story; age/sex mismatch x0.6`,
-`- v2 (improvement): AI similarity on the full structured profile + rule-based eligibility checks (conflict x${weights.conflict}, check x${weights.check}, +${weights.bonus} per fit, max +${weights.maxBonus})${wChanged ? ' [tuned weights]' : ''}`,
+`- v1 (original): AI similarity on condition + free-text story; age/sex mismatch x0.6`,
+`- v2 (baseline): AI similarity on the full structured profile + rule-based eligibility checks`,
+`- v3 (improvement): v2 + expanded eligibility rules from error analysis (header parsing fix, required-mutation check, disease-setting checks, better diagnosis-date parsing)${wChanged ? ` [tuned weights: conflict x${weights.conflict}, check x${weights.check}, +${weights.bonus}/fit]` : ''}`,
 ``,
-`Results (average over cases)      No AI   v1     v2`,
-...METRICS.map(m => `${(m.name + (m.higher ? '' : ' (lower=better)')).padEnd(34)}${f('api', m.key).padEnd(8)}${f('v1', m.key).padEnd(7)}${f('v2', m.key)}`),
+`Results (average over cases)      No AI   v1     v2     v3`,
+...METRICS.map(m => `${(m.name + (m.higher ? '' : ' (lower=better)')).padEnd(34)}${f('api', m.key).padEnd(8)}${f('v1', m.key).padEnd(7)}${f('v2', m.key).padEnd(7)}${f('v3', m.key)}`),
 ``,
-`Rule validation (v2 conflict flags vs human "likely excluded" labels): precision ${pct(prec)}, recall ${pct(rec)} (TP ${R.rules.tp}, FP ${R.rules.fp}, FN ${R.rules.fn}, TN ${R.rules.tn}).`,
+`Rule validation (conflict flags vs "likely excluded" labels):`,
+...['v2','v3'].map(k => { const r = R.rules[k]; return `- ${k}: precision ${pct(r.prec)}, recall ${pct(r.rec)} (TP ${r.tp}, FP ${r.fp}, FN ${r.fn}, TN ${r.tn})`; }),
 ``,
-`Per case Good@5 (No AI / v1 / v2):`,
-...R.perCase.map(r => `- ${r.c.case.name}: ${pct(r.sys.api.good)} / ${pct(r.sys.v1.good)} / ${pct(r.sys.v2.good)}`)
+`Per case Good@5 (No AI / v1 / v2 / v3):`,
+...R.perCase.map(r => `- ${r.c.case.name}: ${pct(r.sys.api.good)} / ${pct(r.sys.v1.good)} / ${pct(r.sys.v2.good)} / ${pct(r.sys.v3.good)}`)
   ].join('\n');
 }
 

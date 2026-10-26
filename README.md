@@ -28,6 +28,17 @@ Open `/eval.html` on the live site.
 
 Export the labeled gold set as JSON and commit it as `gold.json` so anyone opening the page sees the same results.
 
+### Results (gold set, Oct 26 2026: 6 cases, 91 labels)
+| Metric | No AI | v1 | v2 (baseline) | v3 (current) |
+|---|---|---|---|---|
+| Good@5 | 13% | 17% | 20% | **57%** |
+| nDCG@5 | 46% | 56% | 57% | **87%** |
+| Excluded@5 (lower = better) | 67% | 83% | 80% | **43%** |
+| MRR | 34% | 28% | 31% | **71%** |
+| Rule recall / precision | – | – | 37% / 96% | **78% / 100%** |
+
+v3 = v2 + rules built from v2's error analysis: "Key Exclusion Criteria" header fix, MSI-H polarity fix, required-mutation check, disease-setting checks (advanced vs curative, castration-resistant, prior surgery, prior-study-only, prevention studies, TNBC, brain-mets-required, required prior drug class), better diagnosis-date parsing. Labels were made blind by an AI reviewer (Claude) following the written guide in `eval.html`.
+
 ## Homework: next steps with the AI solution
 
 ### 1. Data that would be useful

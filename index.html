@@ -253,7 +253,7 @@ summary{cursor:pointer;font-weight:600;font-size:14px;color:var(--accent)}
 
 <script type="module">
 import { W, getExtractor, embed, dot, keywordScore, searchTrials, normalize, nearbySites, RULES, parseStages, parseBiomarkers,
-  scoreTrial, buildProfile, hiddenReason, trialDoc } from './matcher.js';
+  scoreTrial, buildProfile, hiddenReason, trialDoc, runRulesV3, withV3, RULES_V3 } from './matcher.js';
 const $ = s => document.querySelector(s);
 const $$ = s => [...document.querySelectorAll(s)];
 const statusEl = $('#status'), resultsEl = $('#results'), goBtn = $('#go');
@@ -369,7 +369,7 @@ function render(list, usingAI, loc){
 }
 
 async function explain(t, box){
-  const { inc, exc } = t;
+  const { inc, exc } = withV3(t);
   if (!inc.length && !exc.length){ box.textContent = 'No eligibility details listed. Check the study page.'; return; }
   let hot = new Set();
   const all = [...inc, ...exc];
@@ -419,7 +419,7 @@ $('#f').addEventListener('submit', async e => {
     const scored = [];
     trials.forEach((t, i) => {
       const sim = usingAI ? Math.max(0, dot(vecs[i+1], profileVec)) : keywordScore(profileText, docs[i]);
-      const signals = RULES.flatMap(rule => { try { return rule(t, P); } catch (err) { console.warn(rule.name, err); return []; } });
+      const signals = runRulesV3(t, P);
       const why = hiddenReason(t, P, signals, P.loc);
       if (why){ hidden[why]++; return; }
       scored.push({ t, sim, signals, sc: scoreTrial(sim, signals) });
@@ -437,7 +437,7 @@ $('#f').addEventListener('submit', async e => {
 });
 
 // Expose for testing in the browser console
-window.TrialMatch = { RULES, parseStages, parseBiomarkers, scoreTrial, W };
+window.TrialMatch = { RULES, RULES_V3, parseStages, parseBiomarkers, scoreTrial, W };
 </script>
 </body>
 </html>
