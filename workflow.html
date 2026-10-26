@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TrialMatch Workflow</title>
+<meta name="description" content="How TrialMatch works end to end: workflow, what the AI decides, and where humans approve.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,650&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f6f4ef; --card:#ffffff; --ink:#1d2433; --muted:#5d6577; --line:#e3dfd6;
+  --accent:#2f6f62; --accent-soft:#e3f0ec; --human:#8a4b14; --human-soft:#fbefe1;
+  --data:#3d5f96; --data-soft:#e6edf8; --chip:#efece5;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#14171d; --card:#1c2029; --ink:#e9e7e2; --muted:#a3a9b6; --line:#2d3340;
+    --accent:#6cc2ae; --accent-soft:#1d3530; --human:#e3a35c; --human-soft:#3a2b1b;
+    --data:#8fb1e8; --data-soft:#1f2a3d; --chip:#262b36;
+  }
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 Inter,system-ui,sans-serif}
+.wrap{max-width:900px;margin:0 auto;padding:32px 16px 64px}
+h1{font-family:Fraunces,Georgia,serif;font-weight:650;font-size:clamp(28px,5vw,40px);margin:0 0 6px}
+h2{font-family:Fraunces,Georgia,serif;font-weight:600;font-size:22px;margin:34px 0 10px}
+p{margin:0 0 10px}
+.muted{color:var(--muted)}
+a{color:var(--accent)}
+.nav{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+.nav a{font-size:12px;font-weight:600;padding:4px 10px;border-radius:999px;background:var(--accent-soft);color:var(--accent);text-decoration:none}
+.legend{display:flex;gap:16px;flex-wrap:wrap;font-size:13px;margin:16px 0 8px}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.legend i{width:12px;height:12px;border-radius:3px;display:inline-block}
+.flow{display:grid;gap:0}
+.step{display:grid;grid-template-columns:44px 1fr;gap:12px}
+.rail{display:flex;flex-direction:column;align-items:center}
+.dot{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;font-weight:700;font-size:14px;flex:none}
+.line{flex:1;width:2px;background:var(--line);min-height:14px}
+.step:last-child .line{display:none}
+.box{background:var(--card);border:1px solid var(--line);border-left:4px solid var(--accent);border-radius:12px;padding:12px 14px;margin-bottom:14px}
+.box h3{margin:0 0 4px;font-size:16px}
+.box p{font-size:14px;margin:0}
+.tag{display:inline-block;font-size:11px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;padding:2px 8px;border-radius:999px;margin-bottom:6px}
+.ai .dot{background:var(--accent-soft);color:var(--accent)} .ai .box{border-left-color:var(--accent)} .ai .tag{background:var(--accent-soft);color:var(--accent)}
+.hu .dot{background:var(--human-soft);color:var(--human)} .hu .box{border-left-color:var(--human)} .hu .tag{background:var(--human-soft);color:var(--human)}
+.da .dot{background:var(--data-soft);color:var(--data)} .da .box{border-left-color:var(--data)} .da .tag{background:var(--data-soft);color:var(--data)}
+.decide{margin-top:8px;font-size:13px;background:var(--bg);border-radius:8px;padding:8px 10px}
+.decide b{color:var(--ink)}
+.loop{border:2px dashed var(--line);border-radius:14px;padding:14px;margin-top:4px}
+.loop h3{margin:0 0 6px;font-size:15px}
+table{width:100%;border-collapse:collapse;font-size:14px}
+th,td{text-align:left;padding:9px 8px 9px 0;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);font-weight:600}
+.tablewrap{overflow-x:auto;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:6px 14px}
+.yes{color:var(--accent);font-weight:600}.no{color:var(--human);font-weight:600}
+.foot{font-size:12px;color:var(--muted);margin-top:30px;border-top:1px solid var(--line);padding-top:12px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="nav"><a href="./">← TrialMatch app</a><a href="./eval.html">Evaluation results</a></div>
+  <h1>How TrialMatch works</h1>
+  <p class="muted">The full workflow from a patient's question to a trial enrollment, what the AI decides on its own, and where a person has to approve.</p>
+
+  <div class="legend">
+    <span><i style="background:var(--data)"></i>Data</span>
+    <span><i style="background:var(--accent)"></i>AI / automated</span>
+    <span><i style="background:var(--human)"></i>Human decision or approval</span>
+  </div>
+
+  <div class="flow">
+    <div class="step hu"><div class="rail"><div class="dot">1</div><div class="line"></div></div>
+      <div class="box"><span class="tag">Human</span><h3>Patient or caregiver describes the situation</h3>
+        <p>Condition, location, age, plus optional stage, diagnosis date, biomarkers, treatments, activity level, other conditions and preferences.</p>
+        <div class="decide"><b>Decision:</b> what to share. Everything stays in the browser; only condition and location leave the device.</div></div></div>
+
+    <div class="step da"><div class="rail"><div class="dot">2</div><div class="line"></div></div>
+      <div class="box"><span class="tag">Data</span><h3>Search ClinicalTrials.gov</h3>
+        <p>Pulls up to 50 recruiting trials for the condition and location (free public API).</p></div></div>
+
+    <div class="step ai"><div class="rail"><div class="dot">3</div><div class="line"></div></div>
+      <div class="box"><span class="tag">AI</span><h3>Rank by meaning</h3>
+        <p>A small language model (MiniLM, in the browser) compares the patient's profile with each trial and scores similarity.</p>
+        <div class="decide"><b>AI decides:</b> how relevant each trial is to the description.</div></div></div>
+
+    <div class="step ai"><div class="rail"><div class="dot">4</div><div class="line"></div></div>
+      <div class="box"><span class="tag">AI + rules</span><h3>Check eligibility</h3>
+        <p>Rules read inclusion and exclusion criteria and mark each patient detail ✓ fits, ✕ likely conflict, or ? check with the study team, quoting the exact criterion.</p>
+        <div class="decide"><b>Decides:</b> which trials look likely to exclude the patient, and pushes them down. <b>Never decides:</b> that someone is eligible.</div></div></div>
+
+    <div class="step ai"><div class="rail"><div class="dot">5</div><div class="line"></div></div>
+      <div class="box"><span class="tag">AI</span><h3>Fit score, shortlist and plain-English explanation</h3>
+        <p>Fit = similarity × penalties for conflicts + small bonus for details that fit. Shows "Why this rank", decoded jargon, nearby sites and contacts.</p>
+        <div class="decide"><b>Patient decides:</b> preference filters (skip Phase 1, skip placebo, nearby only, hide conflicts).</div></div></div>
+
+    <div class="step hu"><div class="rail"><div class="dot">6</div><div class="line"></div></div>
+      <div class="box"><span class="tag">Approval 1 · Patient</span><h3>Patient chooses which trials to pursue</h3>
+        <p>Reviews the shortlist and the ✕ / ? items, and picks trials worth asking about.</p></div></div>
+
+    <div class="step hu"><div class="rail"><div class="dot">7</div><div class="line"></div></div>
+      <div class="box"><span class="tag">Approval 2 · Doctor</span><h3>Care team reviews the shortlist</h3>
+        <p>The oncologist or physician confirms a trial is medically appropriate and fills in what the patient may not know (biomarkers, histology, labs).</p></div></div>
+
+    <div class="step hu"><div class="rail"><div class="dot">8</div><div class="line"></div></div>
+      <div class="box"><span class="tag">Approval 3 · Study team</span><h3>Study coordinator screens and enrolls</h3>
+        <p>The only party that decides eligibility. Formal screening, informed consent, enrollment.</p></div></div>
+  </div>
+
+  <div class="loop">
+    <h3>↻ Improvement loop (behind the scenes)</h3>
+    <p class="muted" style="font-size:14px">Freeze a gold set of patient cases → label each system's top 5 blind (<b>Approval 4 · reviewer</b>) → score Good@5, nDCG, Excluded@5, MRR → study the misses → change rules or weights → re-label new trials that surface → <b>Approval 5 · developer</b> ships only if scores improve. <a href="./eval.html">See the results →</a></p>
+  </div>
+
+  <h2>Decision space</h2>
+  <div class="tablewrap"><table>
+    <tr><th>Decision</th><th>Who makes it</th><th>Automated?</th></tr>
+    <tr><td>Which trials to fetch</td><td>Search by condition + location</td><td class="yes">Yes</td></tr>
+    <tr><td>Order of results</td><td>AI similarity + eligibility rules</td><td class="yes">Yes</td></tr>
+    <tr><td>Flag a likely conflict (✕) or "check" (?)</td><td>Rules, with the criterion quoted</td><td class="yes">Yes, advisory only</td></tr>
+    <tr><td>Hide trials (Phase 1, placebo, distance, conflicts)</td><td>Patient's preference toggles</td><td class="no">Patient opts in</td></tr>
+    <tr><td>Which trials to ask about</td><td>Patient / caregiver</td><td class="no">No</td></tr>
+    <tr><td>Whether a trial is medically appropriate</td><td>Treating physician</td><td class="no">No</td></tr>
+    <tr><td>Eligibility and enrollment</td><td>Study team</td><td class="no">No</td></tr>
+    <tr><td>Changing the ranking logic</td><td>Developer, gated by the evaluation</td><td class="no">No</td></tr>
+  </table></div>
+
+  <div class="foot">TrialMatch is not medical advice. It narrows the search; people make every decision that matters.</div>
+</div>
+</body>
+</html>
